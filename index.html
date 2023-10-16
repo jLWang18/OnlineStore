@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./style.css" />
+
+    <title>JJ's Store</title>
+  </head>
+  <body>
+    <h1>Welcome to Christian Music Store!</h1>
+    <p><i>Where you'll find your favorite Christian CDs and DVDs</i></p>
+    <hr />
+
+    <h2>Please enter your profile info</h2>
+
+    <form id="form" action="/">
+      <div class="personal-info">
+        <div class="input-control">
+          <h3>Personal Info</h3>
+          <label for="fname">First Name:</label>
+          <input
+            type="text"
+            id="fname"
+            name="fname"
+          />
+          <div class="error"></div>
+        </div>
+        <br /><br />
+        <div class="input-control">
+          <label for="lname">Last Name:</label>
+          <input
+            type="text"
+            id="lname"
+            name="lname"
+          />
+          <div class="error"></div>
+        </div>
+        <br /><br />
+        <div class="input-control">
+          <label for="email">Email Address:</label>
+          <input
+            type="text"
+            id="email"
+            name="email"
+          />
+          <div class="error"></div>
+        </div>
+        <br /><br />
+        <div class="input-control">
+          <label for="phone-number">Phone:</label>
+          <input type="text" onkeydown="phoneNumberFormatter()" id="phone-number" />
+          <div class="error"></div>
+        </div>
+        <br /><br />
+        <div class="input-control">
+          <label for="password1">Password:</label>
+          <input type="password" id="password1" name="password1"/>
+          <div class="error"></div>
+        </div>
+        <br /><br />
+        <div class="input-control">
+          <label for="password2">Confirm Password:</label>
+          <input type="password" id="password2" name="password2"/>
+          <div class="error"></div>
+        </div>
+        <br /><br />
+      </div>
+
+      <div class="shipping-address">
+        <h3>Shipping Address</h3>
+        <div class="input-control">
+          <label for="address1">Street Address:</label>
+          <input
+            type="text"
+            id="address1"
+            name="address1"
+          />
+          <div class="error"></div>
+        </div>
+        <br /><br />
+        <div class="input-control">
+          <label for="address2">Apt, suite, etc (optional):</label>
+          <input
+            type="text"
+            id="address2"
+            name="address2"
+          />
+          <div class="error"></div>
+        </div>
+        <br /><br />
+        <div class="input-control">
+          <label for="city">City:</label>
+          <input type="text" id="city" name="city"/>
+          <div class="error"></div>
+        </div>
+        <br /><br />
+        <div class="input-control">
+          <label for="state">State:</label>
+          <input type="text" id="state" name="state"/>
+          <div class="error"></div>
+        </div>
+        <br /><br />
+        <div class="input-control">
+          <label for="zip">Zip:</label>
+          <input type="text" id="zip" name="zip"/>
+          <div class="error"></div>
+        </div>
+        <br /><br />
+      </div>
+
+      <div class="choose-orders">
+        <h3>Choose your orders</h3>
+        <table bgcolor="black" width="700">
+          <tr bgcolor="grey">
+            <th width="100">Select</th>
+            <th width="150">Product Name</th>
+            <th width="100">Price</th>
+            <th width="100">Quantity</th>
+          </tr>
+          <tr bgcolor="lightgrey" align="center">
+              <td><input type="checkbox" id="cd1" name="cd1" value="CD1" /></td>
+              <td><label for="cd1"> Jimmy Swaggart CD </label></td>
+              <td><label for="cd1">$20</label></td>
+              <td>
+                <select name="cd1" id="cd1">
+                  <option value=""></option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                  <option value="10">10</option>
+                </select>
+              </td>
+          </tr>
+          <tr bgcolor="lightgrey" align="center">
+            <td><input type="checkbox" id="cd2" name="cd2" value="CD2" /></td>
+            <td><label for="cd2"> Bill Gaither CD </label></td>
+            <td><label for="cd2">$20</label></td>
+            <td>
+              <select name="cd2" id="cd2">
+                <option value=""></option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+              </select>
+            </td>
+          </tr>
+          <tr bgcolor="lightgrey" align="center">
+            <td>
+              <input type="checkbox" id="dvd1" name="dvd1" value="DVD1" />
+            </td>
+            <td><label for="dvd1"> Collingsworth Family DVD </label></td>
+            <td><label for="dvd1">$40</label></td>
+            <td>
+              <select name="dvd1" id="dvd1">
+                <option value=""></option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+              </select>
+            </td>
+          </tr>
+          <tr bgcolor="lightgrey" align="center">
+            <td>
+              <input type="checkbox" id="dvd2" name="dvd2" value="DVD2" />
+            </td>
+            <td><label for="dvd2"> The Hoppers DVD </label></td>
+            <td><label for="dvd2">$40</label></td>
+            <td>
+              <select name="dvd2" id="dvd2">
+                <option value=""></option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+              </select>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <br />
+      <button type="submit">Submit</button>
+    </form>
+    <script src="./index.js"></script>
+  </body>
+</html>
