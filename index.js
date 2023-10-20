@@ -14,6 +14,14 @@ const cityField = document.getElementById("city");
 const stateField = document.getElementById("state");
 const zipField = document.getElementById('zip');
 
+const checkboxInput = document.getElementsByClassName('item-checkbox');
+
+// Get Checkboxes input
+const checkbox1 = document.getElementById("cd1");
+const checkbox2 = document.getElementById("cd2");
+const checkbox3 = document.getElementById("dvd1");
+const checkbox4 = document.getElementById("dvd2");
+
 /*Display an error*/
 const setError = (element, message) => {
   const inputControl = element.parentElement;
@@ -52,12 +60,26 @@ const isValidNumber = (input) => {
   }
 }
 
+const isAlphabetic = (input) => {
+  var alphaPattern = /^[a-zA-Z]+$/;
+
+ // if it contains alphabets, return true or else return false
+  if (alphaPattern.test(input)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 
 const validateFirstName  = (firstNameField, firstNameInput) => {
   if (firstNameInput === '') {
     setError(firstNameField, 'First Name is required');
     return false;
-  } else if (firstNameInput.length < 3 || firstNameInput.length > 50) {
+  } else if (isAlphabetic(firstNameInput) !== true) {
+    setError(firstNameField, 'Please provide a valid first name');
+    return false;
+  }else if (firstNameInput.length < 3 || firstNameInput.length > 50) {
     setError(firstNameField, 'First Name must be at least between 3 and 50 characters');
     return false;
   }else {
@@ -69,6 +91,9 @@ const validateFirstName  = (firstNameField, firstNameInput) => {
 const validateLastName = (lastNameField, lastNameInput) => {
   if (lastNameInput === '') {
     setError(lastNameField, 'Last Name is required');
+    return false;
+  } else if (isAlphabetic(lastNameInput) !== true) {
+    setError(lastNameField, 'Please provide a valid last name');
     return false;
   } else if (lastNameInput.length < 3 || lastNameInput.length > 150) {
     setError(lastNameField, 'Last Name must be at least between 3 and 150 characters');
@@ -174,7 +199,10 @@ const validateCity = (cityField, cityInput) => {
   if(cityInput === '') {
     setError(cityField, 'City is required');
     return false;
-  } else if (cityInput.length < 3 || cityInput.length > 75) {
+  } else if (isAlphabetic(cityInput) !== true) {
+    setError(cityField, 'Please provide a valid city');
+    return false;
+  }else if (cityInput.length < 3 || cityInput.length > 75) {
     setError(cityField, 'City must be at least between 3 and 75 characters');
     return false;
   } else {
@@ -188,7 +216,10 @@ const validateState = (stateField, stateInput) => {
   if(stateInput === '') {
     setError(stateField, 'State is required');
     return false;
-  } else if (stateInput.length < 2 || stateInput.length > 2) {
+  } else if (isAlphabetic(stateInput) !== true) {
+    setError(stateField, 'Please provide a valid state');
+    return false;
+  }else if (stateInput.length < 2 || stateInput.length > 2) {
     setError(stateField, 'State must be 2 characters (e.g., WA, OK, NY, TX, etc.');
     return false;
   } else {
@@ -214,6 +245,7 @@ const validateZip = (zipField, zipInput) => {
 }
 
 
+
 // Disable input event listeners initially
 firstNameField.removeEventListener("input", firstNameInputListener);
 lastNameField.removeEventListener("input", lastNameInputListener);
@@ -221,11 +253,14 @@ emailField.removeEventListener("input", emailInputListener);
 phoneNumberField.removeEventListener("input", phoneNumberInputListener);
 passwordField1.removeEventListener("input", passwordInputListener1);
 passwordField2.removeEventListener("input", passwordInputListener2);
+
 addressField1.removeEventListener("input", addressInputListener1);
 addressField2.removeEventListener("input", addressInputListener2);
 cityField.removeEventListener("input", cityInputListener);
 stateField.removeEventListener("input", stateInputListener);
 zipField.removeEventListener("input", zipInputListener);
+
+checkboxInput[0].removeEventListener("change", checkboxInputListener);
 
 
 // function to add input event listener when the submit button is clicked
@@ -236,11 +271,17 @@ function addInputEventListeners() {
   phoneNumberField.addEventListener("input", phoneNumberInputListener);
   passwordField1.addEventListener("input", passwordInputListener1);
   passwordField2.addEventListener("input", passwordInputListener2);
+  
   addressField1.addEventListener("input", addressInputListener1);
   addressField2.addEventListener("input", addressInputListener2);
   cityField.addEventListener("input", cityInputListener);
   stateField.addEventListener("input", stateInputListener);
   zipField.addEventListener("input", zipInputListener);
+
+  checkbox1.addEventListener("change", checkboxInputListener);
+  checkbox2.addEventListener("change", checkboxInputListener);
+  checkbox3.addEventListener("change", checkboxInputListener);
+  checkbox4.addEventListener("change", checkboxInputListener);
 
 }
 
@@ -270,7 +311,7 @@ function passwordInputListener1 (e) {
 }
 
 function passwordInputListener2 (e) {
-  const passwordInput1 = e.target.value;
+  const passwordInput1 = passwordField1.value.trim();
   const passwordInput2 = e.target.value;
   validatePassword2(passwordField2, passwordInput1, passwordInput2);
 }
@@ -300,14 +341,23 @@ function zipInputListener (e) {
   validateZip(zipField, zipInput);
 }
 
+function checkboxInputListener() {
+  // add/remove sucesses or error
+  if (this.checked) {
+    setSuccess(checkboxInput[0]);
+  } else {
+    setError(checkboxInput[0], "Please select at least one checkbox");
+  }
+}
+
 
 /*Specify what the submit button will do*/
 form.addEventListener('submit', e => {
   /*prevent sumbission before validation */
   e.preventDefault();
 
-  // Enable input event listeners when the submit button is clicked
-  addInputEventListeners();
+  // // Enable input event listeners when the submit button is clicked
+   addInputEventListeners();
 
   // Get Personal Input values: Trim to delete any leading and trailing whitespaces
   const firstNameInput = firstNameField.value.trim();
@@ -338,13 +388,15 @@ form.addEventListener('submit', e => {
   const isCityValid = validateCity(cityField, cityInput);
   const isStateValid = validateState(stateField, stateInput);
   const isZipValid = validateZip(zipField, zipInput); 
-  
 
+  // validate Product Table
+  //const isCheckboxValid = validateCheckbox(checkboxInput, checkbox1, checkbox2, checkbox3, checkbox4);
+  
 
   if (isFirstNameValid && isLastNameValid && isEmailValid 
     && isPhoneNumberValid && isPasswordValid1 && isPasswordValid2
     && isAddressValid1 && isAddressValid2 && isCityValid
-    && isStateValid && isZipValid) {
+    && isStateValid && isZipValid && isCheckboxValid) {
     alert("Form submitted successfully!");
   } else {
     alert("Please fill out the required fields before submitting.")
@@ -353,38 +405,48 @@ form.addEventListener('submit', e => {
 });
 
 
-/*const validateShippingAddress = () => {
+/* Product-table section
+ * Enable users to choose product quantity from 1-10
+ */
+const maxQuantity = 10;
+// document.getElementsByClassName returns 
+// a collection of elements with the specified class name
+// in this case, the collection (i.e., array) is the <select> element 
+const selectElements = document.getElementsByClassName("quantitySelect");
 
+// Therefore, you must access each of the <select> element
+// this is similar as how to access 2D array
+for(let j= 0; j < selectElements.length; j++) {
+  const selectElement = selectElements[j];
+  for (let i = 1; i <= maxQuantity; i++) {
+    // create <option> element inside the <select> element
+    // <option value="1">1</option>
+    const option = document.createElement("option");
+    option.value = i;
+    option.text = i;
+    selectElement.appendChild(option);
+ }
+}
 
-
-
-
-
-
-};*/
-
-
-
-/*Checkbox validation*/
-function validate() {
-    var valid = false;
-
-    if (document.getElementById("cd1").checked) {
-      valid = true;
-    } else if (document.getElementById("cd2").checked) {
-      valid = true;
-    } else if (document.getElementById("dvd1").checked) {
-      valid = true;
-    } else if (document.getElementById("dvd2").checked) {
-      valid = true;
-    }
-
-    if (valid) {
-      alert("Are you sure you want these products?");
-    } else {
-      alert("Please select at least one product.");
-    }
-  }
+// Product table validation: Checkboxes and Quantity
+const validateCheckbox = (checkboxInput, checkbox1, checkbox2, checkbox3, checkbox4) => {
+  // initially, valid is false
+   var valid = false;
+ 
+   // if one or multiple checkboxes are checked
+   if (checkbox1.checked || checkbox2.checked
+   || checkbox3.checked || checkbox4.checked ) {
+     // set success for any of the checkboxes (in this case, the first checkbox)
+     setSuccess(checkboxInput[0]);
+     valid = true;
+   } else {
+     // display error
+     setError(checkboxInput[0], "Please select at least one checkbox");
+     
+   }
+    // return the valid's value
+     return valid
+ }
 
   /*format the phone number*/
   function formatPhoneNumber(value) {
