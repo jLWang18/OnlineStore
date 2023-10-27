@@ -364,8 +364,10 @@ form.addEventListener('submit', e => {
   const lastNameInput = lastNameField.value.trim();
   const emailInput = emailField.value.trim();
   const phoneNumberInput = phoneNumberField.value.trim();
-  const passwordInput1 = passwordField1.value.trim();
-  const passwordInput2 = passwordField2.value.trim();
+  
+  // Not required for now
+  //const passwordInput1 = passwordField1.value.trim();
+  //const passwordInput2 = passwordField2.value.trim();
 
   // Get Shipping Address Input values: Trim to delete any leading and trailing whitespaces
   const addressInput1 = addressField1.value.trim();
@@ -379,8 +381,10 @@ form.addEventListener('submit', e => {
   const isLastNameValid = validateLastName(lastNameField, lastNameInput);
   const isEmailValid = validateEmail(emailField, emailInput);
   const isPhoneNumberValid = validatePhoneNumber(phoneNumberField, phoneNumberInput);
-  const isPasswordValid1 = validatePassword1(passwordField1, passwordInput1);
-  const isPasswordValid2 = validatePassword2(passwordField2, passwordInput1, passwordInput2);
+  
+  // Not required for now
+  //const isPasswordValid1 = validatePassword1(passwordField1, passwordInput1);
+  //const isPasswordValid2 = validatePassword2(passwordField2, passwordInput1, passwordInput2);
 
   // validate the Shipping Address Section
   const isAddressValid1 = validateAddress1(addressField1, addressInput1);
@@ -394,7 +398,7 @@ form.addEventListener('submit', e => {
   
 
   if (isFirstNameValid && isLastNameValid && isEmailValid 
-    && isPhoneNumberValid && isPasswordValid1 && isPasswordValid2
+    && isPhoneNumberValid /*&& isPasswordValid1 && isPasswordValid2*/
     && isAddressValid1 && isAddressValid2 && isCityValid
     && isStateValid && isZipValid && isCheckboxValid) {
     alert("Form submitted successfully!");
