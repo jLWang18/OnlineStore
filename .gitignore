@@ -1,0 +1,10 @@
+# Ignore virtual environment directory
+venv/
+
+# Ignore installed packages
+*.pyc
+*.pyo
+__pyache__/
+
+# Ignore the requirements.txt file
+requirements.txt
