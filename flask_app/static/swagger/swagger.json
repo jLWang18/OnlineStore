@@ -1,0 +1,208 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Online Store API",
+    "description": "the sale of Christian music",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/customer-info/get": {
+      "get": {
+        "description": "get all customers details",
+        "responses": {
+          "200": {
+            "description": "all customer details displayed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/customer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customer-info/{customer_id}": {
+      "get": {
+        "description": "get customer details based on customer id",
+        "parameters": [
+          {
+            "name": "customer_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "customer details displayed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/customer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customer-info/addCustomerPhone": {
+      "post": {
+        "description": "Add new customer phone number",
+        "operationId": "createCustomerPhoneNumber",
+        "parameters": [
+          {
+            "name": "phone_number",
+            "in": "query",
+            "description": "Customer's phone number",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Customer's created sucessfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/customerPhone"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customer-info/addCustomerEmail": {
+      "post": {
+        "description": "Add new customer email",
+        "operationId": "createCustomerEmail",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "description": "Customer's email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Customer's created sucessfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/customerEmail"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customer-info/addCustomer": {
+      "post": {
+        "description": "Add new customer",
+        "operationId": "createCustomer",
+        "parameters": [
+          {
+            "name": "first_name",
+            "in": "query",
+            "description": "Customer's first name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "last_name",
+            "in": "query",
+            "description": "Customer's last name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "description": "Customer's email",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "phone_number",
+            "in": "query",
+            "description": "Customer's phone number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Customer's created sucessfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/customer"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "customer": {
+        "type": "object",
+        "properties": {
+          "customer_id": {
+            "type": "integer"
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "integer"
+          },
+          "phone_number": {
+            "type": "integer"
+          }
+        }
+      },
+      "customerEmail": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "customerPhone": {
+        "type": "object",
+        "properties": {
+          "phone_number": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
