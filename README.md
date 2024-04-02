@@ -13,7 +13,7 @@ Before running the website, do the following:
 * Clone the project
 * Install requirements.txt
 * Start Flask API:
-    * Install virtual environment (virtualenv) →  ``pip install virtualenv``
+    * Install virtual environment (virtualenv) →  ```pip install virtualenv```
     * Create a virtual environment in your project → ```virtualenv env```
     * Activate virtual environment →  ```env\Scripts\activate```
 
