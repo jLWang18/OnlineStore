@@ -3,8 +3,12 @@ import pyodbc
 from datetime import datetime
 from flask_swagger_ui import get_swaggerui_blueprint
 
+# Import a custom UIService class for API Service call
+from webservice import MyWebService
+
 # Set up flask application
 app = Flask(__name__)
+webservice = MyWebService()
 
 ### Swagger specific ###
 SWAGGER_URL = '/swagger' 
@@ -38,6 +42,19 @@ def signin():
 def customer_info_ui():
     return render_template('customer_info.html')
 
+# Format phone input
+def format_phone():
+    #Convert phone input in from (XXX)-(XXX)-(XXXX) to XXXXXXXXX format
+    replacements = [('(', ''), ('-', ''), (')', '')]
+    
+    for char, replacement in replacements:
+        if char in phone:
+            phone = phone.replace(char, replacement)
+    
+    #make sure there is no spaces         
+    phone = phone.replace(' ', '') 
+    return phone
+
 # Define Flask API routes for customer_info HTML form
 @app.route('/submit_customer', methods=['POST'])
 def submit_customer():
@@ -50,115 +67,39 @@ def submit_customer():
         conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};' 'Server=(localdb)\MSSQLLocalDB;' 'Database=account_receivable;' 'Trusted_Connection=yes;')
         # Create a cursor object
         cursor = conn.cursor()
-            
+        
         #get inputs
         first_name = request.form['fname']
         last_name = request.form['lname']
         email = request.form['email']
         phone = request.form['phone-number']
         
-        #Convert phone input in from (XXX)-(XXX)-(XXXX) to XXXXXXXXX format
-        replacements = [('(', ''), ('-', ''), (')', '')]
-        
-        for char, replacement in replacements:
-            if char in phone:
-                phone = phone.replace(char, replacement)
-        
-        #make sure there is no spaces         
-        phone = phone.replace(' ', '') 
-        
         #default params
         created_date = datetime.now()
         modified_date = None
         
-        #default bool value to check email if added successfully 
-        is_email_valid = True
+        #format phone input
+        phone = format_phone(phone)
         
-        try:
-            #First add email to the email table
-            sql_email_insert_ui_query = "EXEC spEmailAddressTrial_InsertAll ?, ?, ?"
-            cursor.execute(sql_email_insert_ui_query, (email, created_date, modified_date))
-            conn.commit()
-            is_email_valid
+        #add customer email
+        try: 
+            #call the method from myWebService class 
+            webservice.add_customer_email(conn, cursor, first_name, last_name, email, created_date, modified_date)
         except Exception as e:
-            is_email_valid = not is_email_valid
-        
-        #default bool value to check phone if added successfuly
-        is_phone_valid = True
-        
-        
-        
-        
-        try:
-           #second add phone to the phone table
-           sql_phone_insert_ui_query = "EXEC spMobilePhoneTrial_InsertAll ?, ?, ?"
-           cursor.execute(sql_phone_insert_ui_query, (phone, created_date, modified_date))
-           conn.commit()
-           is_phone_valid
-        except Exception as e:
-            is_phone_valid = not is_phone_valid
-            
-        #get the email id from the database
-        email_id = None
-        
-        sql_customer_get_email_byid_query = "EXEC spEmailAddressTrial_GetIdByEmail ?"
-        cursor.execute(sql_customer_get_email_byid_query, (email))
-        
-        #fetch the row tuple
-        result = cursor.fetchone()
-        
-        #check if result is not None and is an integer
-        if result is not None and isinstance(result[0], int):
-            #assigned the first tuple value to email id
-            email_id = result[0]
-        else:
-            print("Error: email_id is not an integer or is None")
-       
-       
-        #get the phone_id from the database
-        phone_id = None
-        
-        sql_customer_get_phone_byid_query = "EXEC spMobilePhoneTrial_GetIdByPhone ?"
-        cursor.execute(sql_customer_get_phone_byid_query, (phone))
-        
-        #fetch the row tuple
-        result = cursor.fetchone()
-        
-        #check if result is not None and is an integer
-        if result is not None and isinstance(result[0], int):
-            #assigned the first tuple value to phone id
-            phone_id = result[0]
-        else:
-            print("Error: phone_id is not an integer or None")
-
-       
-        if is_email_valid and is_phone_valid:
-           
-           try:
-               #finally add all info to the customer table
-               sql_customer_insert_ui_query = "EXEC spCustomerTrial_InsertAll ?, ?, ?, ?, ?, ?"
-               cursor.execute(sql_customer_insert_ui_query, (first_name, last_name, email_id, phone_id, created_date, modified_date))
-               conn.commit()
-               #display UI sucess message
-               return "Success: customer added successfully"
-           except Exception as e:
-               # display UI error message
-               error_message = "There is an error in adding customer: " + str(e)
-               return error_message
-        else:
-            #display err message: email input or phone input is not valid
-            return "Customer's email and/or phone is not valid"
+            error_message = 'An error occured while adding customer email: ' + str(e)
+            return error_message
     else:
-        return "Invalid Request"
+        return "Invalid Request"        
+         
 
 # Define Flask API routes for SwaggerUI
 @app.route('/api/customer-info/get', methods=['GET'])
 def get_details():
-     # initiates database connection and cursor
-     conn = None
-     cursor = None
-     try:
-         #Establish connection to the database
+    # initiates database connection and cursor
+    conn = None
+    cursor = None
+    try:
+        #Establish connection to the database
         conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};' 'Server=(localdb)\MSSQLLocalDB;' 'Database=account_receivable;' 'Trusted_Connection=yes;')
         # Create a cursor object
         cursor = conn.cursor()
@@ -186,16 +127,16 @@ def get_details():
         
         conn.commit()
         return jsonify({'message': 'All Customer\'s records displayed successfully', 'data': customer_details}), 200
-     
-     except Exception as e:
-         error_message = 'There was an issue displaying customer\'s records' + str(e)
-         return jsonify({'error': error_message}), 400
-     
-     finally:
-         #close cursor and connection
-         if cursor:
+    
+    except Exception as e:
+        error_message = 'There was an issue displaying customer\'s records' + str(e)
+        return jsonify({'error': error_message}), 400
+    
+    finally:
+        #close cursor and connection
+        if cursor:
             cursor.close()
-         else:
+        else:
             conn.close()
         
 @app.route('/api/customer-info/<int:customer_id>', methods=['GET'])
@@ -214,9 +155,9 @@ def get_customer_detail(customer_id):
         conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};' 'Server=(localdb)\MSSQLLocalDB;' 'Database=account_receivable;' 'Trusted_Connection=yes;')
         # Create a cursor object
         cursor = conn.cursor()
-           
-       
-             
+        
+    
+            
         try: 
             #Execute query
             sql_customer_getbyid = "EXEC spCustomerTrial_GetById ?"
@@ -240,9 +181,9 @@ def get_customer_detail(customer_id):
         except Exception:
                 error_message = 'Customer ID is not found'
                 return jsonify({'error': error_message}), 400
-              
+            
     finally:
-           # close cursor and connection
+        # close cursor and connection
         if cursor:
             cursor.close()
         if conn:
@@ -250,13 +191,13 @@ def get_customer_detail(customer_id):
 
 @app.route('/api/customer-info/addCustomerPhone', methods=['POST'])
 def customer_phone():
-     
-     # initiates database connection and cursor
-     conn = None
-     cursor = None
+    
+    # initiates database connection and cursor
+    conn = None
+    cursor = None
 
-     try:
-         # Check the request Content-Type is application/x-www-form-urlencoded
+    try:
+        # Check the request Content-Type is application/x-www-form-urlencoded
         if request.headers.get('Content-Type', ''):
             return jsonify({'error': 'Unsupported Media Type.  Please send data with Content-Type: application/x-www-form-urlencoded'}), 415
         
@@ -285,7 +226,7 @@ def customer_phone():
         else:
             return jsonify({'error': 'phone number parameter is missing'}), 400
 
-     finally:
+    finally:
         # close cursor and connection
         if cursor:
             cursor.close()
@@ -325,8 +266,8 @@ def customer_email():
                 # return a valid response
                 return jsonify({'message': 'Customer\'s email added successfully'}), 200
             except Exception as e:
-                 error_message = "There was an issue adding customer's email address: " + str(e)
-                 return jsonify({'error': error_message}), 500
+                error_message = "There was an issue adding customer's email address: " + str(e)
+                return jsonify({'error': error_message}), 500
         else:
             return jsonify({'error': 'email parameter is missing'}), 400
         
@@ -405,7 +346,7 @@ def customer_info():
 @app.route("/customer-info/get", methods=['GET'])
 def get_customer_info():
         try:
-             # Establish connection to the database
+            # Establish connection to the database
             conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};' 'Server=(localdb)\MSSQLLocalDB;' 'Database=account_receivable;' 'Trusted_Connection=yes;')
             # Create a cursor object
             cursor = conn.cursor()
@@ -426,7 +367,7 @@ def get_customer_info():
             return error_message
         
         finally:
-           # close cursor and connection
+        # close cursor and connection
             cursor.close()
             conn.close()
 
