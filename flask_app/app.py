@@ -5,7 +5,6 @@ import pyodbc
 import mywebservice
 import myswaggerservice
 import re
-
 # set up flask application
 app = Flask(__name__)
 
@@ -209,6 +208,62 @@ def get_customer_detail(customer_id):
     else:
         return jsonify({'error': 'Customer ID is not found'})
 
+# define Flask API routes for Web UI to add customer to the database
+@app.route('/submit_customer', methods=['POST'])
+def submit_customer():
+        
+    # instantiate MyWebService class
+    webservice = mywebservice.MyWebService()
+    
+    # get user input
+    first_name = request.form['fname']
+    last_name = request.form['lname']
+    email = request.form['email']
+    phone = request.form['phone-number']
+    
+    # default params
+    created_date = datetime.now()
+    modified_date = None
+    
+    # format phone input
+    phone = format_phone(phone)
+    
+    # call the method from myWebService class 
+    message = webservice.add_customer(first_name, last_name, email, phone, created_date, modified_date)
+    return message        
+         
+
+# define Flask API routes for SwaggerUI to display all customers
+@app.route('/api/customer-info/get', methods=['GET'])
+def get_all_customers():
+    
+    try:    
+        # instantiate MySwaggerService class
+        swaggerservice = myswaggerservice.MySwaggerService()
+        
+        # display customer info by calling the method in MySwaggerService class
+        customer_details = swaggerservice.display_all_customers()
+        
+        return jsonify({'message': 'All customer\'s records displayed successfully', 'data': customer_details}), 200
+    except Exception as e:
+        error_message = 'There was an issue displaying customer\'s records' + str(e)
+        return jsonify({'error': error_message}), 400          
+
+       
+@app.route('/api/customer-info/<int:customer_id>', methods=['GET'])
+def get_customer_detail(customer_id): 
+    
+    # instantiate swagger service
+    swaggerservice = myswaggerservice.MySwaggerService()
+    # get a customer info
+    customer_detail = swaggerservice.display_customer(customer_id)
+    
+    # if there is a customer, display it
+    if(customer_detail is not None):
+          return jsonify({'message': 'All Customer\'s records displayed successfully', 'data': customer_detail}), 200
+    else:
+        return jsonify({'error': 'Customer ID is not found'})
+
 
 @app.route('/api/customer-info/addCustomerPhone', methods=['POST'])
 def customer_phone():
@@ -232,6 +287,8 @@ def customer_phone():
     else:
         error_message = 'please enter number containing 10 digits'
         return jsonify({'error': error_message}), 415
+  
+    
    
 @app.route('/api/customer-info/addCustomerEmail', methods=['POST'])
 def customer_email():
@@ -255,6 +312,7 @@ def customer_email():
         return jsonify({'error message': error_message}), 415
     
    
+
 
 @app.route('/api/customer-info/addCustomer', methods=['POST'])
 def customer_info():
