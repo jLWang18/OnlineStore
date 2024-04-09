@@ -4,6 +4,7 @@ from datetime import datetime
 import pyodbc
 import mywebservice
 import myswaggerservice
+import re
 
 # set up flask application
 app = Flask(__name__)
@@ -54,6 +55,103 @@ def format_phone(phone):
     # make sure there is no spaces         
     phone = phone.replace(' ', '') 
     return phone
+
+# check if phone number contains digits
+def contain_digits(phone_number):
+    
+    # if char is 1, 2, 3,..., or 0, store in num_bucket
+    num_bucket = ''
+    # if char is alphabet or special chars, store in special_bucket
+    special_bucket = ''
+    for char in phone_number:
+        # store numbers in num_bucket
+        if  char == '0':
+            num_bucket += char
+        elif char == '1':
+            num_bucket += char 
+        elif char == '2':
+            num_bucket += char
+        elif char == '3':
+            num_bucket += char
+        elif char == '4':
+            num_bucket += char 
+        elif char == '5':
+            num_bucket += char
+        elif char == '6':
+            num_bucket += char
+        elif char == '7':
+            num_bucket += char 
+        elif char == '8':
+            num_bucket += char
+        elif char == '9':
+            num_bucket += char
+        else:
+            # store in special bucket
+            special_bucket += char
+            
+    # if special_bucket does not contain special chars
+    if (special_bucket == ''):
+        # check if num_bucket contains only 10 digits
+        if (len(num_bucket) == 10):
+            return True
+        else:
+            # num_bucket contains more than 10 digits
+            return False
+    else:
+        # phone_num contains alphabet and/or special chars
+        return False
+    
+def is_valid_email(email):
+    # alphabet
+    local = r'[a-zA-Z]|[0-9]'
+    # numbers
+    symbol = r'@'
+    # domain
+    domain1 = r'[a-zA-Z]|[0-9]'
+    domain2 = r'.com'
+    
+    # comparison is case insensitive
+    email = email.lower()
+    
+    # a valid email will contain alphanumeric followed by an @ symbol and the domain name
+    if (re.search(local, email) and re.search(symbol, email) and re.search(domain1, email) and re.search(domain2, email)):
+          # a valid email will be between between 13 and 31 chars
+          chars_length = len(email)
+          if (chars_length >= 13 and chars_length <= 31):
+              # email is valid
+              return True
+          else:
+              return False
+    else:
+        return False
+        
+def check_first_name(first_name):
+    # check if first name contains letters between 3 and 50 chars
+    letters = r'[a-zA-z]'
+    
+    if (re.search(letters, first_name)):
+        # check if valid length
+        chars_length = len(first_name)
+        if (chars_length >= 3 and chars_length <= 50):
+            return True
+        else:
+            return False
+    else:
+        return False
+
+def check_last_name(last_name):
+    # check if last name contains letters between 3 and 150 chars
+    letters = r'[a-zA-z]'
+    
+    if (re.search(letters, last_name)):
+        # check if valid length
+        chars_length = len(last_name)
+        if (chars_length >= 3 and chars_length <= 150):
+            return True
+        else:
+            return False
+    else:
+        return False
 
 # define Flask API routes for Web UI to add customer to the database
 @app.route('/submit_customer', methods=['POST'])
@@ -120,14 +218,20 @@ def customer_phone():
         return jsonify({'error': 'Unsupported Media Type.  Please send data with Content-Type: application/x-www-form-urlencoded'}), 415
     
     # get phone number from query parameter
-    phone_number = request.args.get('phone_number')  
+    phone_number = request.args.get('phone_number')
     
-    # instantiate swagger service 
-    swaggerservice = myswaggerservice.MySwaggerService()
+    # check if it is a 10 digits number
+    is_number = contain_digits(phone_number)
     
-    message = swaggerservice.add_customer_phone(phone_number)
-    
-    return message
+    # if it contains 10 digits number
+    if (is_number):
+        # add customer to the database by calling swaggerservice
+        swaggerservice = myswaggerservice.MySwaggerService()
+        message = swaggerservice.add_customer_phone(phone_number)
+        return message
+    else:
+        error_message = 'please enter number containing 10 digits'
+        return jsonify({'error': error_message}), 415
    
 @app.route('/api/customer-info/addCustomerEmail', methods=['POST'])
 def customer_email():
@@ -138,13 +242,19 @@ def customer_email():
     # get email from query parameter
     email = request.args.get('email')
     
-    # instantiate swagger service
-    swaggerservice = myswaggerservice.MySwaggerService()
+    # check if valid email
+    is_email = is_valid_email(email)
     
-    # add email
-    message = swaggerservice.add_customer_email(email)
-
-    return message
+    if (is_email):
+        # add email by swagger service
+        swaggerservice = myswaggerservice.MySwaggerService()
+        message = swaggerservice.add_customer_email(email)
+        return message
+    else:
+        error_message = 'Please enter valid email at least between 13 and 31 characters'
+        return jsonify({'error message': error_message}), 415
+    
+   
 
 @app.route('/api/customer-info/addCustomer', methods=['POST'])
 def customer_info():
@@ -159,13 +269,22 @@ def customer_info():
     email_id = request.args.get('email')
     phone_number_id = request.args.get('phone_number')
     
-    # instantiate swaggerservice
-    swaggerservice = myswaggerservice.MySwaggerService()
+    # first name must be between 3 and 50 letters
+    valid_fn = check_first_name(first_name)
+    # last name must be between 3 and 150 letters
+    valid_ln = check_last_name(last_name)
     
-    # add customer
-    message = swaggerservice.add_customer(first_name, last_name, email_id, phone_number_id)
-    
-    return message
+    if (valid_fn == False):
+        error_message = 'Please enter valid first name at least between 3 and 50 characters'
+        return jsonify({'error message': error_message}), 415
+    elif(valid_ln == False):
+        error_message = 'Please enter valid last name at least between 3 and 150 characters'
+        return jsonify({'error message': error_message}), 415
+    else:
+        # if both first name and last_name valid, add them by swagger service
+        swaggerservice = myswaggerservice.MySwaggerService()
+        message = swaggerservice.add_customer(first_name, last_name, email_id, phone_number_id)
+        return message
 
 if __name__== "__main__":
     app.run(debug=True)

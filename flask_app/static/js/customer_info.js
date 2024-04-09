@@ -111,7 +111,7 @@ const validatePhoneNumber = (phoneNumberField, phoneNumberInput) => {
     setError(phoneNumberField, 'Phone Number is required');
     return false;
   } else if (phoneNumberInput.length < 13) {
-    setError(phoneNumberField, 'Phone Number  must contain 9 digits');
+    setError(phoneNumberField, 'Phone Number  must contain 10 digits');
     return false;
   } else if (isValidNumber(phoneNumberInput) !== true) {
     setError(phoneNumberField, 'Phone Number must contain digits only');
