@@ -131,10 +131,9 @@ def check_password(password):
         and re.search(number, password) and re.search(symbol, password)):
         return True
     else:
-        return False
-        
+        return jsonify({'error': 'Customer ID is not found'})
 
-# define Flask API route for Web UI to add customer to the database
+# define Flask API routes for Web UI to add customer to the database
 @app.route('/submit_customer', methods=['POST'])
 def submit_customer():
         
@@ -157,8 +156,89 @@ def submit_customer():
     # call the method from myWebService class 
     message = webservice.add_customer(first_name, last_name, email, phone, created_date, modified_date)
     return message        
+         
+
+# define Flask API routes for SwaggerUI to display all customers
+@app.route('/api/customer-info/get', methods=['GET'])
+def get_all_customers():
     
-# define Flask API route for Swagger UI to add customer to the database
+    try:    
+        # instantiate MySwaggerService class
+        swaggerservice = myswaggerservice.MySwaggerService()
+        
+        # display customer info by calling the method in MySwaggerService class
+        customer_details = swaggerservice.display_all_customers()
+        
+        return jsonify({'message': 'All customer\'s records displayed successfully', 'data': customer_details}), 200
+    except Exception as e:
+        error_message = 'There was an issue displaying customer\'s records' + str(e)
+        return jsonify({'error': error_message}), 400          
+
+       
+@app.route('/api/customer-info/<int:customer_id>', methods=['GET'])
+def get_customer_detail(customer_id): 
+    
+    # instantiate swagger service
+    swaggerservice = myswaggerservice.MySwaggerService()
+    # get a customer info
+    customer_detail = swaggerservice.display_customer(customer_id)
+    
+    # if there is a customer, display it
+    if(customer_detail is not None):
+          return jsonify({'message': 'All Customer\'s records displayed successfully', 'data': customer_detail}), 200
+    else:
+        return jsonify({'error': 'Customer ID is not found'})
+
+
+@app.route('/api/customer-info/addCustomerPhone', methods=['POST'])
+def customer_phone():
+    
+    # Check the request Content-Type is application/x-www-form-urlencoded
+    if request.headers.get('Content-Type', ''):
+        return jsonify({'error': 'Unsupported Media Type.  Please send data with Content-Type: application/x-www-form-urlencoded'}), 415
+    
+    # get phone number from query parameter
+    phone_number = request.args.get('phone_number')
+    
+    # check if it is a 10 digits number
+    is_number = contain_digits(phone_number)
+    
+    # if it contains 10 digits number
+    if (is_number):
+        # add customer to the database by calling swaggerservice
+        swaggerservice = myswaggerservice.MySwaggerService()
+        message = swaggerservice.add_customer_phone(phone_number)
+        return message
+    else:
+        error_message = 'please enter number containing 10 digits'
+        return jsonify({'error': error_message}), 415
+  
+    
+   
+@app.route('/api/customer-info/addCustomerEmail', methods=['POST'])
+def customer_email():
+    # check the request Content-Type is application/x-www-form-urlencoded
+    if request.headers.get('Content-Type', ''):
+        return jsonify({'error': 'Unsupported Media Type.  Please send data with Content-Type: application/x-www-form-urlencoded'}), 415
+
+    # get email from query parameter
+    email = request.args.get('email')
+    
+    # check if valid email
+    is_email = is_valid_email(email)
+    
+    if (is_email):
+        # add email by swagger service
+        swaggerservice = myswaggerservice.MySwaggerService()
+        message = swaggerservice.add_customer_email(email)
+        return message
+    else:
+        error_message = 'Please enter valid email at least between 13 and 31 characters'
+        return jsonify({'error message': error_message}), 415
+    
+   
+
+
 @app.route('/api/customer-info/addCustomer', methods=['POST'])
 def add_customer():
     # check the request Content-Type is application/x-www-form-urlencoded
