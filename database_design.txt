@@ -24,14 +24,6 @@ Fields:
     - created date
     - modified date
 
-Password Table
-Purpose: Store password as cobination of hash and salt via bcrypt algorithm
-
-Fields:
-    - password id (PK)
-    - hash
-    - salt
-
 Shipping Address Table
 Purpose: This table stores the shipping address of a customer. 
 This table is intended to be seperate from the customer table, so that the customer can
