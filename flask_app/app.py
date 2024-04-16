@@ -8,8 +8,6 @@ import re
 # set up flask application
 app = Flask(__name__)
 
-
-
 ### Swagger specific ###
 SWAGGER_URL = '/swagger' 
 API_URL = '/static/swagger/swagger.json'
@@ -55,55 +53,21 @@ def format_phone(phone):
     phone = phone.replace(' ', '') 
     return phone
 
-# check if phone number contains digits
+
 def contain_digits(phone_number):
+    # check if phone number contains digits
+    digits = r'[0-9]'
     
-    # if char is 1, 2, 3,..., or 0, store in num_bucket
-    num_bucket = ''
-    # if char is alphabet or special chars, store in special_bucket
-    special_bucket = ''
-    for char in phone_number:
-        # store numbers in num_bucket
-        if  char == '0':
-            num_bucket += char
-        elif char == '1':
-            num_bucket += char 
-        elif char == '2':
-            num_bucket += char
-        elif char == '3':
-            num_bucket += char
-        elif char == '4':
-            num_bucket += char 
-        elif char == '5':
-            num_bucket += char
-        elif char == '6':
-            num_bucket += char
-        elif char == '7':
-            num_bucket += char 
-        elif char == '8':
-            num_bucket += char
-        elif char == '9':
-            num_bucket += char
-        else:
-            # store in special bucket
-            special_bucket += char
-            
-    # if special_bucket does not contain special chars
-    if (special_bucket == ''):
-        # check if num_bucket contains only 10 digits
-        if (len(num_bucket) == 10):
-            return True
-        else:
-            # num_bucket contains more than 10 digits
-            return False
+    if (re.search(digits,phone_number)):
+        return True
     else:
-        # phone_num contains alphabet and/or special chars
         return False
+    
     
 def is_valid_email(email):
     # alphabet
     local = r'[a-zA-Z]|[0-9]'
-    # numbers
+    # @ symbol
     symbol = r'@'
     # domain
     domain1 = r'[a-zA-Z]|[0-9]'
@@ -152,7 +116,25 @@ def check_last_name(last_name):
     else:
         return False
 
-# define Flask API routes for Web UI to add customer to the database
+def passwordValidation(password):
+    # check if password contains at least 8 characters long, 
+    # an uppercase, lowercase, a numbers, and a symbol
+    uppercase = r'[A-Z]'
+    lowercase = r'[a-z]'
+    number = r'[0-9]'
+    symbol = r'[@_!#$%^&*()<>{~:]'
+    
+    # get password length
+    password_len = len(password)
+    
+    if (password_len >= 8 and re.search(uppercase, password) and re.search(lowercase, password) 
+        and re.search(number, password) and re.search(symbol, password)):
+        return True
+    else:
+        return False
+        
+
+# define Flask API route for Web UI to add customer to the database
 @app.route('/submit_customer', methods=['POST'])
 def submit_customer():
         
@@ -176,91 +158,36 @@ def submit_customer():
     message = webservice.add_customer(first_name, last_name, email, phone, created_date, modified_date)
     return message        
 
-       
-@app.route('/api/customer-info/<int:customer_id>', methods=['GET'])
-def get_customer_detail(customer_id): 
-    
-    # instantiate swagger service
-    swaggerservice = myswaggerservice.MySwaggerService()
-    # get a customer info
-    customer_detail = swaggerservice.display_customer(customer_id)
-    
-    # if there is a customer, display it
-    if(customer_detail is not None):
-          return jsonify({'message': 'All Customer\'s records displayed successfully', 'data': customer_detail}), 200
-    else:
-        return jsonify({'error': 'Customer ID is not found'})  
-         
-
-# define Flask API routes for SwaggerUI to display all customers
-@app.route('/api/customer-info/get', methods=['GET'])
-def get_all_customers():
-    
-    try:    
-        # instantiate MySwaggerService class
-        swaggerservice = myswaggerservice.MySwaggerService()
-        
-        # display customer info by calling the method in MySwaggerService class
-        customer_details = swaggerservice.display_all_customers()
-        
-        return jsonify({'message': 'All customer\'s records displayed successfully', 'data': customer_details}), 200
-    except Exception as e:
-        error_message = 'There was an issue displaying customer\'s records' + str(e)
-        return jsonify({'error': error_message}), 400          
-
-
-@app.route('/api/customer-info/addCustomerPhone', methods=['POST'])
-def customer_phone():
-    
-    # Check the request Content-Type is application/x-www-form-urlencoded
-    if request.headers.get('Content-Type', ''):
-        return jsonify({'error': 'Unsupported Media Type.  Please send data with Content-Type: application/x-www-form-urlencoded'}), 415
-    
-    # get phone number from query parameter
-    phone_number = request.args.get('phone_number')
-    
-    # check if it is a 10 digits number
-    is_number = contain_digits(phone_number)
-    
-    # if it contains 10 digits number
-    if (is_number):
-        # add customer to the database by calling swaggerservice
-        swaggerservice = myswaggerservice.MySwaggerService()
-        message = swaggerservice.add_customer_phone(phone_number)
-        return message
-    else:
-        error_message = 'please enter number containing 10 digits'
-        return jsonify({'error': error_message}), 415
-  
-    
-   
-@app.route('/api/customer-info/addCustomerEmail', methods=['POST'])
-def customer_email():
-    # check the request Content-Type is application/x-www-form-urlencoded
+# define Flask API route for Swagger UI to add customer's password to the database
+@app.route('/api/customer-info/addPassword', methods=['POST'])
+def add_password():
+       # check the request Content-Type is application/x-www-form-urlencoded
     if request.headers.get('Content-Type', ''):
         return jsonify({'error': 'Unsupported Media Type.  Please send data with Content-Type: application/x-www-form-urlencoded'}), 415
 
-    # get email from query parameter
-    email = request.args.get('email')
+    # get input from query parameteter in bytes form
+    password_string = request.args.get('password')
     
-    # check if valid email
-    is_email = is_valid_email(email)
+    # check if password contains at least 8 characters long, 
+    # an uppercase, lowercase, a numbers, and a symbol
+    password_valid = passwordValidation(password_string)
     
-    if (is_email):
-        # add email by swagger service
+    if (password_valid):
+        # instantiate swaggerservice
         swaggerservice = myswaggerservice.MySwaggerService()
-        message = swaggerservice.add_customer_email(email)
+        # convert a string password to bytes
+        password = bytes(password_string, 'utf-8')
+        # add to the database
+        message = swaggerservice.add_shopper_password(password)
         return message
     else:
-        error_message = 'Please enter valid email at least between 13 and 31 characters'
+        error_message = 'Please enter password at least 8 characters long, 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol'
         return jsonify({'error message': error_message}), 415
     
-   
-
-
-@app.route('/api/customer-info/addCustomer', methods=['POST'])
-def customer_info():
     
+# define Flask API route for Swagger UI to add customer to the database
+@app.route('/api/customer-info/addCustomer', methods=['POST'])
+def add_customer():
     # check the request Content-Type is application/x-www-form-urlencoded
     if request.headers.get('Content-Type', ''):
         return jsonify({'error': 'Unsupported Media Type.  Please send data with Content-Type: application/x-www-form-urlencoded'}), 415
@@ -268,8 +195,9 @@ def customer_info():
     # get input from query parameteter
     first_name = request.args.get('first_name')
     last_name = request.args.get('last_name')
-    email_id = request.args.get('email')
-    phone_number_id = request.args.get('phone_number')
+    email = request.args.get('email')
+    password_id = request.args.get('password')
+    phone_number = request.args.get('phone_number')
     
     # first name must be between 3 and 50 letters
     valid_fn = check_first_name(first_name)
@@ -285,7 +213,7 @@ def customer_info():
     else:
         # if both first name and last_name valid, add them by swagger service
         swaggerservice = myswaggerservice.MySwaggerService()
-        message = swaggerservice.add_customer(first_name, last_name, email_id, phone_number_id)
+        message = swaggerservice.add_customer(first_name, last_name, email, password_id, phone_number)
         return message
 
 if __name__== "__main__":

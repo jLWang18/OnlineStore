@@ -50,63 +50,35 @@
         }
       }
     },
-    "/api/customer-info/addCustomerPhone": {
+    "/api/customer-info/addPassword": {
       "post": {
-        "description": "Add new customer phone number",
-        "operationId": "createCustomerPhoneNumber",
+        "description": "Add customer's password",
+        "operationId": "createPassword",
         "parameters": [
           {
-            "name": "phone_number",
+            "name": "password",
             "in": "query",
-            "description": "Customer's phone number",
             "required": true,
             "schema": {
               "type": "string"
             }
+
           }
         ],
         "responses": {
           "201": {
-            "description": "Customer's created sucessfully",
+            "description": "Customer's password created successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/customerPhone"
+                  "$ref": "#/components/schemas/password"
                 }
               }
             }
           }
         }
       }
-    },
-    "/api/customer-info/addCustomerEmail": {
-      "post": {
-        "description": "Add new customer email",
-        "operationId": "createCustomerEmail",
-        "parameters": [
-          {
-            "name": "email",
-            "in": "query",
-            "description": "Customer's email",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Customer's created sucessfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/customerEmail"
-                }
-              }
-            }
-          }
-        }
-      }
+
     },
     "/api/customer-info/addCustomer": {
       "post": {
@@ -135,6 +107,15 @@
             "name": "email",
             "in": "query",
             "description": "Customer's email",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "password",
+            "in": "query",
+            "description": "Customer's password",
             "required": true,
             "schema": {
               "type": "integer"
@@ -182,24 +163,19 @@
           "email": {
             "type": "integer"
           },
+          "password": {
+            "type": "integer"
+          },
           "phone_number": {
             "type": "integer"
           }
         }
       },
-      "customerEmail": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string"
-          }
-        }
-      },
-      "customerPhone": {
-        "type": "object",
-        "properties": {
-          "phone_number": {
-            "type": "string"
+
+      "password":{
+        "properties":{
+          "password":{
+            "type":"string"
           }
         }
       }

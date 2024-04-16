@@ -1,6 +1,7 @@
 from flask import jsonify, request
 from datetime import datetime
 import pyodbc
+import bcrypt
 
 class MySwaggerService:
     # static SQL conection
@@ -293,4 +294,36 @@ class MySwaggerService:
             
         else:
             return jsonify({'error': 'one of the parameter is missing'}), 400
+
+    # add password to the database
+    def add_shopper_password(self, password):
+        # generate salt 
+        salt = bcrypt.gensalt()
+        # hash the password with generated salt
+        hashed_password = bcrypt.hashpw(password, salt)
         
+        # open sql connection
+        conn = self.open_sql()
+        
+        # create cursor object
+        cursor = conn.cursor()
+        
+        # default params
+        created_date = datetime.now()
+        modified_date = None
+        
+        # add hash password and salt to the database
+        try:
+            sql_add_password = "EXEC spShopperPassword_InsertAll ?, ?, ?, ?"
+            cursor.execute(sql_add_password, (hashed_password, salt, created_date, modified_date))
+            conn.commit()
+            # close SQL cursor & connection
+            self.close_sql(cursor)
+                
+            return jsonify({'message': 'Customer\'s password added successfully'}), 200
+        except Exception as e:       
+                # close SQL cursor & connection
+                self.close_sql(cursor)
+                
+                error_message = "There was an issue adding customer's password: " + str(e)
+                return jsonify({'error': error_message}), 500
