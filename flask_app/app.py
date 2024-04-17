@@ -70,14 +70,14 @@ def check_email(email):
     # @ symbol
     symbol = r'@'
     # domain
-    domain1 = r'[a-zA-Z]|[0-9]'
-    domain2 = r'.com'
+    domain = r'[a-zA-Z0-9]+\.com$'
     
     # comparison is case insensitive
     email = email.lower()
     
+    
     # a valid email will contain alphanumeric followed by an @ symbol and the domain name
-    if (re.search(local, email) and re.search(symbol, email) and re.search(domain1, email) and re.search(domain2, email)):
+    if (re.search(local, email) and re.search(symbol, email) and re.search(domain, email)):
           # a valid email will be between between 13 and 31 chars
           chars_length = len(email)
           if (chars_length >= 13 and chars_length <= 31):
@@ -90,9 +90,19 @@ def check_email(email):
         
 def check_first_name(first_name):
     # check if first name contains letters between 3 and 50 chars
+    # and does not contain any symbols and numbers
     letters = r'[a-zA-z]'
+    symbols = r'[@_!#$%^&*()<>{~:]'
+    numbers = r'[0-9]'
     
-    if (re.search(letters, first_name)):
+    # check if first name contain symbols
+    contain_symbols = re.search(symbols, first_name)
+    
+    # check if first name contain numbers
+    contain_numbers = re.search(numbers, first_name)
+    
+    # if first name contains only letter and not symbols or numbers
+    if ((re.search(letters, first_name)) and (contain_symbols is None) and (contain_numbers is None)):
         # check if valid length
         chars_length = len(first_name)
         if (chars_length >= 3 and chars_length <= 50):
@@ -103,10 +113,20 @@ def check_first_name(first_name):
         return False
 
 def check_last_name(last_name):
-    # check if last name contains letters between 3 and 150 chars
+    # check if last name contains letters between 3 and 150 letters and 
+    # does not contain any symbols and numbers
     letters = r'[a-zA-z]'
+    symbols = r'[@_!#$%^&*()<>{~:]'
+    numbers = r'[0-9]'
     
-    if (re.search(letters, last_name)):
+    # check if last name contain symbols
+    contain_symbols = re.search(symbols, last_name)
+    
+    # check if last name contain numbers
+    contain_numbers = re.search(numbers, last_name)
+    
+    # if last name contains only letter and not symbols or numbers
+    if (re.search(letters, last_name) and (contain_symbols is None) and (contain_numbers is None)):
         # check if valid length
         chars_length = len(last_name)
         if (chars_length >= 3 and chars_length <= 150):
@@ -134,71 +154,35 @@ def check_password(password):
         return False 
          
 
-# define Flask API routes for SwaggerUI to display all customers
-@app.route('/api/customer-info/get', methods=['GET'])
-def get_all_customers():
+# # define Flask API routes for SwaggerUI to display all customers <--- not needed for now
+# @app.route('/api/customer-info/get', methods=['GET'])
+# def get_all_customers():
     
-    try:    
-        # instantiate MySwaggerService class
-        swaggerservice = myswaggerservice.MySwaggerService()
+#     try:    
+#         # instantiate MySwaggerService class
+#         swaggerservice = myswaggerservice.MySwaggerService()
         
-        # display customer info by calling the method in MySwaggerService class
-        customer_details = swaggerservice.display_all_customers()
+#         # display customer info by calling the method in MySwaggerService class
+#         customer_details = swaggerservice.display_all_customers()
         
-        return jsonify({'message': 'All customer\'s records displayed successfully', 'data': customer_details}), 200
-    except Exception as e:
-        error_message = 'There was an issue displaying customer\'s records' + str(e)
-        return jsonify({'error': error_message}), 400          
+#         return jsonify({'message': 'All customer\'s records displayed successfully', 'data': customer_details}), 200
+#     except Exception as e:
+#         error_message = 'There was an issue displaying customer\'s records' + str(e)
+#         return jsonify({'error': error_message}), 400          
 
-
-@app.route('/api/customer-info/addCustomerPhone', methods=['POST'])
-def customer_phone():
+# @app.route('/api/customer-info/<int:customer_id>', methods=['GET']) <--- not needed for now
+# def get_customer_detail(customer_id): 
     
-    # Check the request Content-Type is application/x-www-form-urlencoded
-    if request.headers.get('Content-Type', ''):
-        return jsonify({'error': 'Unsupported Media Type.  Please send data with Content-Type: application/x-www-form-urlencoded'}), 415
+#     # instantiate swagger service
+#     swaggerservice = myswaggerservice.MySwaggerService()
+#     # get a customer info
+#     customer_detail = swaggerservice.display_customer(customer_id)
     
-    # get phone number from query parameter
-    phone_number = request.args.get('phone_number')
-    
-    # check if it is a 10 digits number
-    is_number = contain_digits(phone_number)
-    
-    # if it contains 10 digits number
-    if (is_number):
-        # add customer to the database by calling swaggerservice
-        swaggerservice = myswaggerservice.MySwaggerService()
-        message = swaggerservice.add_customer_phone(phone_number)
-        return message
-    else:
-        error_message = 'please enter number containing 10 digits'
-        return jsonify({'error': error_message}), 415
-  
-    
-   
-@app.route('/api/customer-info/addCustomerEmail', methods=['POST'])
-def customer_email():
-    # check the request Content-Type is application/x-www-form-urlencoded
-    if request.headers.get('Content-Type', ''):
-        return jsonify({'error': 'Unsupported Media Type.  Please send data with Content-Type: application/x-www-form-urlencoded'}), 415
-
-    # get email from query parameter
-    email = request.args.get('email')
-    
-    # check if valid email
-    is_email = is_valid_email(email)
-    
-    if (is_email):
-        # add email by swagger service
-        swaggerservice = myswaggerservice.MySwaggerService()
-        message = swaggerservice.add_customer_email(email)
-        return message
-    else:
-        error_message = 'Please enter valid email at least between 13 and 31 characters'
-        return jsonify({'error message': error_message}), 415
-    
-   
-
+#     # if there is a customer, display it
+#     if(customer_detail is not None):
+#           return jsonify({'message': 'All Customer\'s records displayed successfully', 'data': customer_detail}), 200
+#     else:
+#         return jsonify({'error': 'Customer ID is not found'})
 
 @app.route('/api/customer-info/addCustomer', methods=['POST'])
 def add_customer():
@@ -227,10 +211,10 @@ def add_customer():
     password_valid = check_password(password_string)
     
     if (first_name_valid == False):
-        error_message = 'Please enter a valid first name at least between 3 and 50 characters'
+        error_message = 'Please enter a valid first name at least between 3 and 50 letters'
         return jsonify({'error message': error_message}), 415
     elif(last_name_valid == False):
-        error_message = 'Please enter a valid last name at least between 3 and 150 characters'
+        error_message = 'Please enter a valid last name at least between 3 and 150 letters'
         return jsonify({'error message': error_message}), 415
     elif(email_valid == False):
          error_message = 'Please enter a valid email at least between 13 and 31 characters'
