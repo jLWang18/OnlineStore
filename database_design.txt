@@ -14,8 +14,8 @@ Fields:
     - customer id (PK)
     - first name
     - last name
-    - email address
-    - password (FK)
+    - email address unique
+    - password_hash
     - phone number
     - shipping adresss (FK)
     - credit limit
@@ -24,16 +24,10 @@ Fields:
     - created date
     - modified date
 
-Password Table
-Purpose: Store password as cobination of hash and salt via bcrypt algorithm
-
-Fields:
-    - password id (PK)
-    - hash
-    - salt
-
 Shipping Address Table
-Purpose: This table stores the shipping address of a customer
+Purpose: This table stores the shipping address of a customer. 
+This table is intended to be seperate from the customer table, so that the customer can
+manage their addresses and reuse them during check out process.
 
 Fields:
     - address id (PK)
