@@ -8,6 +8,8 @@
   "paths": {
     "/api/customer-info/get": {
       "get": {
+        "deprecated": true,
+        "summary": "For the first launch, this operation is not available temporarily",
         "description": "get all customers details",
         "responses": {
           "200": {
@@ -25,6 +27,8 @@
     },
     "/api/customer-info/{customer_id}": {
       "get": {
+        "deprecated": true,
+        "summary": "For the first launch, this operation is not available temporarily",
         "description": "get customer details based on customer id",
         "parameters": [
           {
