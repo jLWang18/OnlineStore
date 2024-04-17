@@ -50,36 +50,7 @@
         }
       }
     },
-    "/api/customer-info/addPassword": {
-      "post": {
-        "description": "Add customer's password",
-        "operationId": "createPassword",
-        "parameters": [
-          {
-            "name": "password",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Customer's password created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/password"
-                }
-              }
-            }
-          }
-        }
-      }
-
-    },
+    
     "/api/customer-info/addCustomer": {
       "post": {
         "description": "Add new customer",
@@ -109,7 +80,7 @@
             "description": "Customer's email",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string"
             }
           },
           {
@@ -118,7 +89,7 @@
             "description": "Customer's password",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string"
             }
           },
           {
@@ -164,18 +135,10 @@
             "type": "integer"
           },
           "password": {
-            "type": "integer"
+            "type": "string"
           },
           "phone_number": {
             "type": "integer"
-          }
-        }
-      },
-
-      "password":{
-        "properties":{
-          "password":{
-            "type":"string"
           }
         }
       }

@@ -64,7 +64,7 @@ def contain_digits(phone_number):
         return False
     
     
-def is_valid_email(email):
+def check_email(email):
     # alphabet
     local = r'[a-zA-Z]|[0-9]'
     # @ symbol
@@ -116,7 +116,7 @@ def check_last_name(last_name):
     else:
         return False
 
-def passwordValidation(password):
+def check_password(password):
     # check if password contains at least 8 characters long, 
     # an uppercase, lowercase, a numbers, and a symbol
     uppercase = r'[A-Z]'
@@ -157,33 +157,6 @@ def submit_customer():
     # call the method from myWebService class 
     message = webservice.add_customer(first_name, last_name, email, phone, created_date, modified_date)
     return message        
-
-# define Flask API route for Swagger UI to add customer's password to the database
-@app.route('/api/customer-info/addPassword', methods=['POST'])
-def add_password():
-       # check the request Content-Type is application/x-www-form-urlencoded
-    if request.headers.get('Content-Type', ''):
-        return jsonify({'error': 'Unsupported Media Type.  Please send data with Content-Type: application/x-www-form-urlencoded'}), 415
-
-    # get input from query parameteter in bytes form
-    password_string = request.args.get('password')
-    
-    # check if password contains at least 8 characters long, 
-    # an uppercase, lowercase, a numbers, and a symbol
-    password_valid = passwordValidation(password_string)
-    
-    if (password_valid):
-        # instantiate swaggerservice
-        swaggerservice = myswaggerservice.MySwaggerService()
-        # convert a string password to bytes
-        password = bytes(password_string, 'utf-8')
-        # add to the database
-        message = swaggerservice.add_shopper_password(password)
-        return message
-    else:
-        error_message = 'Please enter password at least 8 characters long, 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol'
-        return jsonify({'error message': error_message}), 415
-    
     
 # define Flask API route for Swagger UI to add customer to the database
 @app.route('/api/customer-info/addCustomer', methods=['POST'])
@@ -196,24 +169,41 @@ def add_customer():
     first_name = request.args.get('first_name')
     last_name = request.args.get('last_name')
     email = request.args.get('email')
-    password_id = request.args.get('password')
+    password_string = request.args.get('password')
     phone_number = request.args.get('phone_number')
     
     # first name must be between 3 and 50 letters
-    valid_fn = check_first_name(first_name)
-    # last name must be between 3 and 150 letters
-    valid_ln = check_last_name(last_name)
+    first_name_valid = check_first_name(first_name)
     
-    if (valid_fn == False):
-        error_message = 'Please enter valid first name at least between 3 and 50 characters'
+    # last name must be between 3 and 150 letters
+    last_name_valid = check_last_name(last_name)
+    
+    # email alphanumeric followed by an @ symbol and the domain name
+    email_valid = check_email(email)
+    
+    # password must contain at least 8 characters long, 
+    # an uppercase, lowercase, a numbers, and a symbol
+    password_valid = check_password(password_string)
+    
+    if (first_name_valid == False):
+        error_message = 'Please enter a valid first name at least between 3 and 50 characters'
         return jsonify({'error message': error_message}), 415
-    elif(valid_ln == False):
-        error_message = 'Please enter valid last name at least between 3 and 150 characters'
+    elif(last_name_valid == False):
+        error_message = 'Please enter a valid last name at least between 3 and 150 characters'
+        return jsonify({'error message': error_message}), 415
+    elif(email_valid == False):
+         error_message = 'Please enter a valid email at least between 13 and 31 characters'
+         return jsonify({'error message': error_message}), 415
+    elif(password_valid == False):
+        error_message = 'Please enter a valid password at least 8 characters long, 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol'
         return jsonify({'error message': error_message}), 415
     else:
-        # if both first name and last_name valid, add them by swagger service
+        # instatiate swagger service
         swaggerservice = myswaggerservice.MySwaggerService()
-        message = swaggerservice.add_customer(first_name, last_name, email, password_id, phone_number)
+        # convert a string password to bytes
+        password = bytes(password_string, 'utf-8')
+        # add all inputs to the database
+        message = swaggerservice.add_customer(first_name, last_name, email, password, phone_number)
         return message
 
 if __name__== "__main__":

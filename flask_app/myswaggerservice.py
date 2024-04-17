@@ -156,36 +156,6 @@ class MySwaggerService:
             
             error_message = "There was an issue adding customer's info: " + str(e)
             return jsonify({'error': error_message}), 500
-    
-    # get customer's email by ID
-    def get_email(self, email_id):
-        
-        # open SQL Connection
-        conn = self.open_sql()
-        
-        # create cursor object
-        cursor = conn.cursor()
-        
-        sql_customer_get_email_byid_query = "EXEC spEmailAddressTrial_GetById ?"
-        cursor.execute(sql_customer_get_email_byid_query, (email_id))
-        email = cursor.fetchone()
-        
-        return email
-    
-    # get customer's phone by ID
-    def get_phone(self, phone_number_id):
-        
-        # open SQL connection
-        conn = self.open_sql()
-        
-        # create cursor object
-        cursor = conn.cursor()
-        
-        sql_customer_get_phone_byid_query = "EXEC spPhoneNumberTrial_GetById ?"
-        cursor.execute(sql_customer_get_phone_byid_query, (phone_number_id))
-        phone = cursor.fetchone()
-        
-        return phone
         
     # display all customers
     def display_all_customers(self):
@@ -238,92 +208,35 @@ class MySwaggerService:
             # return a null customer data
             return data
     
-    def add_customer_phone(self, phone_number):
-        
-        if (phone_number is not None):
-            # default params
-            created_date = datetime.now()
-            modified_date = None
-              
-            # add phone
-            message = self.add_phone(phone_number, created_date, modified_date)
-            
-            return message
-        else:
-            message = 'Phone parameter is missing'
-            return message
-        
-    def add_customer_email(self, email):
-        
-        if (email is not None):
-             # default params
-            created_date = datetime.now()
-            modified_date = None
-              
-            # add phone
-            message = self.add_email(email, created_date, modified_date)
-            
-            return message
-        else:
-            message = 'Email parameter is missing'
-            return message
     
-    def add_customer(self, first_name, last_name, email_id, phone_number_id):
-        
-        # get the email by ID from the database
-        email = self.get_email(email_id)
-        
-        #get the phone_number by ID from the database
-        phone_number = self.get_phone(phone_number_id)
-        
-        # if the email and phone_number is not found, return jsonify error
-        if email is None:
-            return jsonify({'error': f'Customer\'s email by email_id {email_id} is not found'}), 400
-        elif phone_number is None:
-            return jsonify({'error': f'Customer\'s phone number by phone_number_id {phone_number_id} is not found'}), 400
-        
-        if first_name and last_name is not None:
-            # default params
-            created_date = datetime.now()
-            modified_date = None
-        
-            # insert customer's name
-            message = self.add_name(first_name, last_name, email_id, phone_number_id, created_date, modified_date)
-            
-            return message 
-            
-        else:
-            return jsonify({'error': 'one of the parameter is missing'}), 400
-
-    # add password to the database
-    def add_shopper_password(self, password):
-        # generate salt 
-        salt = bcrypt.gensalt()
-        # hash the password with generated salt
-        hashed_password = bcrypt.hashpw(password, salt)
-        
-        # open sql connection
-        conn = self.open_sql()
-        
-        # create cursor object
-        cursor = conn.cursor()
+    def add_customer(self, first_name, last_name, email, password, phone_number):
         
         # default params
         created_date = datetime.now()
         modified_date = None
         
-        # add hash password and salt to the database
+        # convert password to hash + salt via bcrypt algorithm
+        password_hash = bcrypt.hashpw(password, bcrypt.gensalt())
+    
+        # open SQL connection
+        conn = self.open_sql()
+        
+        # create cursor object
+        cursor = conn.cursor()
+        
         try:
-            sql_add_password = "EXEC spShopperPassword_InsertAll ?, ?, ?, ?"
-            cursor.execute(sql_add_password, (hashed_password, salt, created_date, modified_date))
+            sql_customer_insert_query = "EXEC spShopper_InsertAll ?, ?, ?, ?, ?, ?, ?"
+            cursor.execute(sql_customer_insert_query, (first_name, last_name, email, phone_number, created_date, modified_date, password_hash))
             conn.commit()
+             
             # close SQL cursor & connection
             self.close_sql(cursor)
-                
-            return jsonify({'message': 'Customer\'s password added successfully'}), 200
-        except Exception as e:       
-                # close SQL cursor & connection
-                self.close_sql(cursor)
-                
-                error_message = "There was an issue adding customer's password: " + str(e)
-                return jsonify({'error': error_message}), 500
+            
+            return jsonify({'message': 'Customer\'s profile added successfully'}), 200
+        except Exception as e:
+            
+            # close SQL cursor & connection
+            self.close_sql(cursor)
+            
+            error_message = "There was an issue adding customer's info: " + str(e)
+            return jsonify({'error': error_message}), 500
