@@ -7,6 +7,11 @@ class MySwaggerService:
     # static SQL conection
     conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};' 'Server=(localdb)\MSSQLLocalDB;' 'Database=account_receivable;' 'Trusted_Connection=yes;')
     
+    # static password salt so that password salt is the same 
+    # for every created password can be retrieved easily for verification
+    salt =  bcrypt.gensalt()
+    password_salt = salt
+    
     # open SQL Connection
     def open_sql(self):
         # if connection is closed, open it
@@ -46,6 +51,30 @@ class MySwaggerService:
         
         # return rows of customer details    
         return rows
+    
+    # check if email exist in database
+    def check_duplicate(self, email):
+        
+        # open the SQL connection
+        conn = self.open_sql()
+        
+        # create cursor object
+        cursor = conn.cursor()
+        
+        # get email from the database
+        sql_get_email_query = "EXEC spShopper_GetEmail ?"
+        cursor.execute(sql_get_email_query, email)
+        
+        #fetch the row tuple
+        email_result = cursor.fetchone()
+        
+        # if email does not exist, return true - customer can add their info to the databse
+        if (email_result is not None and isinstance(email_result[0], str)):
+            return True
+        else:
+            return False
+        
+        
     
     # show customers
     def show_customers(self, rows):
@@ -211,12 +240,19 @@ class MySwaggerService:
     
     def add_customer(self, first_name, last_name, email, password, phone_number):
         
+        # check if email exist in the database. 
+        # If it is exist, customer cannot add same email
+        is_exist = self.check_duplicate(email)
+        
+        if (is_exist == True):
+            return jsonify({'error': 'An email exist in the database. Customer cannot add the same email'}), 409
+         
         # default params
         created_date = datetime.now()
         modified_date = None
         
-        # convert password to hash + salt via bcrypt algorithm
-        password_hash = bcrypt.hashpw(password, bcrypt.gensalt())
+        # convert password to hash + static salt via bcrypt algorithm
+        password_hash = bcrypt.hashpw(password, self.password_salt)
     
         # open SQL connection
         conn = self.open_sql()

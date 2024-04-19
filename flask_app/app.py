@@ -5,6 +5,7 @@ import pyodbc
 import mywebservice
 import myswaggerservice
 import re
+
 # set up flask application
 app = Flask(__name__)
 
@@ -20,7 +21,7 @@ swaggerui_blueprint = get_swaggerui_blueprint(
         'app_name': "Online Store API"
     },
 )
-
+    
 app.register_blueprint(swaggerui_blueprint, url_prefix = SWAGGER_URL)
 ### End Swagger specific ###
 
@@ -54,13 +55,20 @@ def format_phone(phone):
     return phone
 
 
-def contain_digits(phone_number):
+def contain_phone(phone_number):
     # check if phone number contains digits
-    digits = r'[0-9]'
+    digits = r'[0-9]+'
     
     if (re.search(digits,phone_number)):
-        return True
+        # check if it 10 digits
+        if (len(phone_number) == 10):
+            return True
+        else:
+            # phone number is not 10 digits
+            return False
+            
     else:
+        # phone_number is not digits
         return False
     
     
@@ -210,6 +218,9 @@ def add_customer():
     # an uppercase, lowercase, a numbers, and a symbol
     password_valid = check_password(password_string)
     
+    # Check if phone contain only digits
+    phone_valid = contain_phone(phone_number)
+    
     if (first_name_valid == False):
         error_message = 'Please enter a valid first name at least between 3 and 50 letters'
         return jsonify({'error message': error_message}), 415
@@ -222,6 +233,9 @@ def add_customer():
     elif(password_valid == False):
         error_message = 'Please enter a valid password at least 8 characters long, 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol'
         return jsonify({'error message': error_message}), 415
+    elif(phone_valid == False):
+         error_message = 'Please enter a valid phone containing 10 digits'
+         return jsonify({'error message': error_message}), 415
     else:
         # instatiate swagger service
         swaggerservice = myswaggerservice.MySwaggerService()
