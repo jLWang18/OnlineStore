@@ -2,21 +2,19 @@ from flask import jsonify, request
 from datetime import datetime
 import pyodbc
 import bcrypt
+import os
 
 class MySwaggerService:
-    # static SQL conection
-    conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};' 'Server=(localdb)\MSSQLLocalDB;' 'Database=account_receivable;' 'Trusted_Connection=yes;')
-    
-    # static password salt so that password salt is the same 
-    # for every created password can be retrieved easily for verification
-    salt =  bcrypt.gensalt()
-    password_salt = salt
+    # accessing environment variables 
+    # for SQL DB connection and password_salt for password creation and verification 
+    conn = os.environ.get('DB_CONNECTION')    
+    password_salt = os.environ.get('PW_SALT') 
     
     # open SQL Connection
     def open_sql(self):
         # if connection is closed, open it
         if self.conn.closed:
-            conn = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};' 'Server=(localdb)\MSSQLLocalDB;' 'Database=account_receivable;' 'Trusted_Connection=yes;')
+            conn = os.environ.get('DB_CONNECTION')    
             return conn
         else:
             # if connection open, return it
