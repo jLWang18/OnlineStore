@@ -7,8 +7,8 @@ import os
 class MySwaggerService:
     # accessing environment variables 
     # for SQL DB connection and password_salt for password creation and verification 
-    conn = os.environ.get('DB_CONNECTION')    
-    password_salt = os.environ.get('PW_SALT') 
+    conn_str = os.environ.get('DB_CONNECTION')
+    password_salt = os.environ.get('PW_SALT').encode('utf-8') 
     
     # open SQL Connection
     def open_sql(self):
@@ -51,10 +51,7 @@ class MySwaggerService:
         return rows
     
     # check if email exist in database
-    def check_duplicate(self, email):
-        
-        # open the SQL connection
-        conn = self.open_sql()
+    def check_duplicate(self, email, conn):
         
         # create cursor object
         cursor = conn.cursor()
@@ -238,39 +235,39 @@ class MySwaggerService:
     
     def add_customer(self, first_name, last_name, email, password, phone_number):
         
-        # check if email exist in the database. 
-        # If it is exist, customer cannot add same email
-        is_exist = self.check_duplicate(email)
+        # open and close database connection
+        with pyodbc.connect(self.conn_str) as conn:
         
-        if (is_exist == True):
-            return jsonify({'error': 'An email exist in the database. Customer cannot add the same email'}), 409
-         
-        # default params
-        created_date = datetime.now()
-        modified_date = None
-        
-        # convert password to hash + static salt via bcrypt algorithm
-        password_hash = bcrypt.hashpw(password, self.password_salt)
-    
-        # open SQL connection
-        conn = self.open_sql()
-        
-        # create cursor object
-        cursor = conn.cursor()
-        
-        try:
-            sql_customer_insert_query = "EXEC spShopper_InsertAll ?, ?, ?, ?, ?, ?, ?"
-            cursor.execute(sql_customer_insert_query, (first_name, last_name, email, phone_number, created_date, modified_date, password_hash))
-            conn.commit()
-             
-            # close SQL cursor & connection
-            self.close_sql(cursor)
+            # check if email exist in the database. 
+            # If it is exist, customer cannot add same email
+            is_exist = self.check_duplicate(email, conn)
             
-            return jsonify({'message': 'Customer\'s profile added successfully'}), 200
-        except Exception as e:
+            if (is_exist == True):
+                return jsonify({'error': 'An email exist in the database. Customer cannot add the same email'}), 409
             
-            # close SQL cursor & connection
-            self.close_sql(cursor)
+            # default params
+            created_date = datetime.now()
+            modified_date = None
             
-            error_message = "There was an issue adding customer's info: " + str(e)
-            return jsonify({'error': error_message}), 500
+            # convert password to hash + static salt via bcrypt algorithm
+            password_hash = bcrypt.hashpw(password, self.password_salt)
+            
+            # create cursor object
+            cursor = conn.cursor()
+            
+            try:
+                sql_customer_insert_query = "EXEC spShopper_InsertAll ?, ?, ?, ?, ?, ?, ?"
+                cursor.execute(sql_customer_insert_query, (first_name, last_name, email, phone_number, created_date, modified_date, password_hash))
+                conn.commit()
+                
+                # close SQL cursor & connection
+                self.close_sql(cursor)
+                
+                return jsonify({'message': 'Customer\'s profile added successfully'}), 200
+            except Exception as e:
+                
+                # close SQL cursor & connection
+                self.close_sql(cursor)
+                
+                error_message = "There was an issue adding customer's info: " + str(e)
+                return jsonify({'error': error_message}), 500
