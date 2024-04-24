@@ -10,6 +10,11 @@ class MySwaggerService:
     conn_str = os.environ.get('DB_CONNECTION')
     password_salt = os.environ.get('PW_SALT').encode('utf-8') 
     
+    # static password salt so that password salt is the same 
+    # for every created password can be retrieved easily for verification
+    salt =  bcrypt.gensalt()
+    password_salt = salt
+    
     # open SQL Connection
     def open_sql(self):
         # if connection is closed, open it
@@ -51,8 +56,8 @@ class MySwaggerService:
         return rows
     
     # check if email exist in database
-    def check_duplicate(self, email, conn):
-        
+
+    def check_duplicate(self, email, conn): 
         # create cursor object
         cursor = conn.cursor()
         
@@ -237,7 +242,14 @@ class MySwaggerService:
         
         # open and close database connection
         with pyodbc.connect(self.conn_str) as conn:
-        
+            
+            # default params
+            created_date = datetime.now()
+            modified_date = None
+            
+            # convert password to hash + static salt via bcrypt algorithm
+            password_hash = bcrypt.hashpw(password, self.password_salt)
+            
             # check if email exist in the database. 
             # If it is exist, customer cannot add same email
             is_exist = self.check_duplicate(email, conn)
