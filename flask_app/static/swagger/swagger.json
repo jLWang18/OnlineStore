@@ -25,18 +25,28 @@
         }
       }
     },
-    "/api/customer-info/{customer_id}": {
+    "/api/customer-info/authentication": {
       "get": {
-        "deprecated": true,
-        "summary": "For the first launch, this operation is not available temporarily",
-        "description": "get customer details based on customer id",
+        "description": "get customer details based on email and password",
+        "operationId": "getCustomerInfo",
         "parameters": [
           {
-            "name": "customer_id",
+            "name": "email", 
+            "in": "query",
+            "description": "Customer's email",
             "required": true,
-            "in": "path",
             "schema": {
-              "type": "integer"
+              "type": "string"
+            }
+          },
+
+          {
+            "name": "password",  
+            "in": "query",
+            "description": "Customer's password",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -136,13 +146,13 @@
             "type": "string"
           },
           "email": {
-            "type": "integer"
+            "type": "string"
           },
           "password": {
             "type": "string"
           },
           "phone_number": {
-            "type": "integer"
+            "type": "string"
           }
         }
       }
