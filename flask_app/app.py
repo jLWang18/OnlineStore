@@ -178,19 +178,28 @@ def check_password(password):
 #         error_message = 'There was an issue displaying customer\'s records' + str(e)
 #         return jsonify({'error': error_message}), 400          
 
-# @app.route('/api/customer-info/<int:customer_id>', methods=['GET']) <--- not needed for now
-# def get_customer_detail(customer_id): 
+@app.route('/api/customer-info/authentication', methods=['GET'])
+def get_customer_detail():
+     # check the request Content-Type is application/x-www-form-urlencoded
+    if request.headers.get('Content-Type', ''):
+        return jsonify({'error': 'Unsupported Media Type.  Please send data with Content-Type: application/x-www-form-urlencoded'}), 415
     
-#     # instantiate swagger service
-#     swaggerservice = myswaggerservice.MySwaggerService()
-#     # get a customer info
-#     customer_detail = swaggerservice.display_customer(customer_id)
+    email = request.args.get('email')
+    password_string = request.args.get('password')
     
-#     # if there is a customer, display it
-#     if(customer_detail is not None):
-#           return jsonify({'message': 'All Customer\'s records displayed successfully', 'data': customer_detail}), 200
-#     else:
-#         return jsonify({'error': 'Customer ID is not found'})
+    # convert a string password to bytes
+    password = bytes(password_string, 'utf-8')
+
+    # instantiate swagger service
+    swaggerservice = myswaggerservice.MySwaggerService()
+    # get a customer info
+    customer_detail = swaggerservice.display_customer(email,password)
+
+    # if there is a customer, display it
+    if(customer_detail is not None):
+          return jsonify({'message': 'All Customer\'s records displayed successfully', 'data': customer_detail}), 200
+    else:
+        return jsonify({'error': 'either email or password is not valid'}), 400
 
 @app.route('/api/customer-info/addCustomer', methods=['POST'])
 def add_customer():
@@ -204,6 +213,7 @@ def add_customer():
     email = request.args.get('email')
     password_string = request.args.get('password')
     phone_number = request.args.get('phone_number')
+    
     
     # first name must be between 3 and 50 letters
     first_name_valid = check_first_name(first_name)
@@ -223,19 +233,19 @@ def add_customer():
     
     if (first_name_valid == False):
         error_message = 'Please enter a valid first name at least between 3 and 50 letters'
-        return jsonify({'error message': error_message}), 415
+        return jsonify({'error message': error_message}), 400
     elif(last_name_valid == False):
         error_message = 'Please enter a valid last name at least between 3 and 150 letters'
-        return jsonify({'error message': error_message}), 415
+        return jsonify({'error message': error_message}), 400
     elif(email_valid == False):
          error_message = 'Please enter a valid email at least between 13 and 31 characters'
-         return jsonify({'error message': error_message}), 415
+         return jsonify({'error message': error_message}), 400
     elif(password_valid == False):
         error_message = 'Please enter a valid password at least 8 characters long, 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol'
-        return jsonify({'error message': error_message}), 415
+        return jsonify({'error message': error_message}), 400
     elif(phone_valid == False):
          error_message = 'Please enter a valid phone containing 10 digits'
-         return jsonify({'error message': error_message}), 415
+         return jsonify({'error message': error_message}), 400
     else:
         # instatiate swagger service
         swaggerservice = myswaggerservice.MySwaggerService()

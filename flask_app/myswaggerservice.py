@@ -196,47 +196,82 @@ class MySwaggerService:
         
         return customers
     
-    # display customer info based on customer ID
-    def display_customer(self, customer_id):
-        # open SQL connection
-        conn = self.open_sql()
-        # create a customer object
-        cursor = conn.cursor()
+    def check_authentication(self, cursor, email, password):
+        # compare bytes password with hashed_password in the database
+        sql_customer_getpassword = "EXEC spShopper_GetPassword ?"
+        cursor.execute(sql_customer_getpassword, (email))
         
-        #Execute query
-        sql_customer_getbyid = "EXEC spCustomerTrial_GetById ?"
-        cursor.execute(sql_customer_getbyid, (customer_id))
-        
-        #get customer data
-        data = cursor.fetchone()
-        
-        # if there is a data, display it
-        if (data != None):
-        
-            customer_detail = {
-            'customer_id': data.pk_customer_id,   
-            'first_name': data.first_name,
-            'last_name': data.last_name,
-            'email_address': data.email_address,
-            'mobile_phone': data.mobile_phone,
-            'created_date': data.created_date,
-            'modified_date': data.modified_date
-            }
-            
-            conn.commit()
-            
-            # close sql cursor and connection
-            self.close_sql(cursor)
-            
-            # return customer detail
-            return customer_detail
-        else:
-            # close sql cursor and connection
-            self.close_sql(cursor)
-            
-            # return a null customer data
-            return data
+        # get the password hash in the database
+        password_hash_obj = cursor.fetchone()
     
+        # if password_hash does exist, email is valid
+        if (password_hash_obj is not None and isinstance(password_hash_obj[0], str)):
+            # access password hash element
+            hashed_password = password_hash_obj[0]
+            # convert to bytes
+            hashed_password_bytes = hashed_password.encode('utf-8')
+            # compare password with password hash
+            if (bcrypt.checkpw(password, hashed_password_bytes)):
+                # password is the same
+                return True
+            else:
+                #password is not the same
+                return False
+        else:
+            return False
+    
+    def show_customer(self, conn, cursor, email):
+          # get customer info from the databse, given the email
+            sql_customer_getall = "EXEC spShopper_GetAll ?"
+            cursor.execute(sql_customer_getall, (email))
+            
+            #get customer data
+            data = cursor.fetchone()
+            
+            # if there is a data, display it
+            if (data != None):
+            
+                customer_detail = {
+                'customer_id': data.pk_shopper_id,   
+                'first_name': data.first_name,
+                'last_name': data.last_name,
+                'email_address': data.email,
+                'mobile_phone': data.phone,
+                'created_date': data.created_date,
+                'modified_date': data.modified_date
+                }
+                
+                conn.commit()
+                
+                # return customer detail
+                return customer_detail
+            else:
+                # return a null customer data
+                return data
+
+            
+    # display customer info based on email and password
+    def display_customer(self, email, password):
+        
+        # open and close SQL database connection
+        with pyodbc.connect(self.conn_str) as conn:
+            
+            # create cursor object
+            cursor = conn.cursor()
+            
+            #check email & password
+            is_authentication_valid = self.check_authentication(cursor, email, password)
+          
+            # if email & password valid, display customer info
+            if(is_authentication_valid):
+                # display customer
+                data = self.show_customer(conn, cursor, email)
+                return data
+            else:
+                # email or password is not valid
+                data = None
+                return data 
+          
     
     def add_customer(self, first_name, last_name, email, password, phone_number):
         
@@ -255,7 +290,7 @@ class MySwaggerService:
             is_exist = self.check_duplicate(email, conn)
             
             if (is_exist == True):
-                return jsonify({'error': 'An email exist in the database. Customer cannot add the same email'}), 409
+                return jsonify({'error': 'An email already exist in the database. Customer cannot add the same email'}), 409
             
             # default params
             created_date = datetime.now()
