@@ -54,9 +54,8 @@ def format_phone(phone):
     phone = phone.replace(' ', '') 
     return phone
 
-
+# check if phone number contains digits
 def contain_phone(phone_number):
-    # check if phone number contains digits
     digits = r'[0-9]+'
     
     if (re.search(digits,phone_number)):
@@ -71,7 +70,7 @@ def contain_phone(phone_number):
         # phone_number is not digits
         return False
     
-    
+# check if email is in correct format    
 def check_email(email):
     # alphabet
     local = r'[a-zA-Z]|[0-9]'
@@ -95,10 +94,10 @@ def check_email(email):
               return False
     else:
         return False
-        
+
+# check if first name contains letters between 3 and 50 chars
+# and does not contain any symbols and numbers        
 def check_first_name(first_name):
-    # check if first name contains letters between 3 and 50 chars
-    # and does not contain any symbols and numbers
     letters = r'[a-zA-z]'
     symbols = r'[@_!#$%^&*()<>{~:]'
     numbers = r'[0-9]'
@@ -120,9 +119,9 @@ def check_first_name(first_name):
     else:
         return False
 
-def check_last_name(last_name):
-    # check if last name contains letters between 3 and 150 letters and 
-    # does not contain any symbols and numbers
+# check if last name contains letters between 3 and 150 letters and 
+# does not contain any symbols and numbers
+def check_last_name(last_name): 
     letters = r'[a-zA-z]'
     symbols = r'[@_!#$%^&*()<>{~:]'
     numbers = r'[0-9]'
@@ -144,9 +143,9 @@ def check_last_name(last_name):
     else:
         return False
 
-def check_password(password):
-    # check if password contains at least 8 characters long, 
-    # an uppercase, lowercase, a numbers, and a symbol
+# check if password contains at least 8 characters long, 
+# an uppercase, lowercase, a numbers, and a symbol
+def check_password(password):    
     uppercase = r'[A-Z]'
     lowercase = r'[a-z]'
     number = r'[0-9]'
@@ -162,25 +161,10 @@ def check_password(password):
         return False 
          
 
-# # define Flask API routes for SwaggerUI to display all customers <--- not needed for now
-# @app.route('/api/customer-info/get', methods=['GET'])
-# def get_all_customers():
-    
-#     try:    
-#         # instantiate MySwaggerService class
-#         swaggerservice = myswaggerservice.MySwaggerService()
-        
-#         # display customer info by calling the method in MySwaggerService class
-#         customer_details = swaggerservice.display_all_customers()
-        
-#         return jsonify({'message': 'All customer\'s records displayed successfully', 'data': customer_details}), 200
-#     except Exception as e:
-#         error_message = 'There was an issue displaying customer\'s records' + str(e)
-#         return jsonify({'error': error_message}), 400          
-
-@app.route('/api/customer-info/authentication', methods=['GET'])
-def get_customer_detail():
-     # check the request Content-Type is application/x-www-form-urlencoded
+# define Flask API routes for SwaggerUI to display products after user is authenticated and verified
+@app.route('/api/customer-info/getProducts', methods=['GET'])
+def get_all_customers():
+    # check the request Content-Type is application/x-www-form-urlencoded
     if request.headers.get('Content-Type', ''):
         return jsonify({'error': 'Unsupported Media Type.  Please send data with Content-Type: application/x-www-form-urlencoded'}), 415
     
@@ -192,15 +176,34 @@ def get_customer_detail():
 
     # instantiate swagger service
     swaggerservice = myswaggerservice.MySwaggerService()
-    # get a customer info
-    customer_detail = swaggerservice.display_customer(email,password)
+    
+    # get all products
+    message = swaggerservice.display_products(email,password)
+    
+    return message      
 
-    # if there is a customer, display it
-    if(customer_detail is not None):
-          return jsonify({'message': 'All Customer\'s records displayed successfully', 'data': customer_detail}), 200
-    else:
-        return jsonify({'error': 'either email or password is not valid'}), 400
+# define Flask API routes for SwaggerUI to display customer's profile after user is authenticated and verified
+@app.route('/api/customer-info/authentication', methods=['GET'])
+def get_customer_detail():
+    # check the request Content-Type is application/x-www-form-urlencoded
+    if request.headers.get('Content-Type', ''):
+        return jsonify({'error': 'Unsupported Media Type.  Please send data with Content-Type: application/x-www-form-urlencoded'}), 415
+    
+    email = request.args.get('email')
+    password_string = request.args.get('password')
+    
+    # convert a string password to bytes
+    password = bytes(password_string, 'utf-8')
 
+    # instantiate swagger service
+    swaggerservice = myswaggerservice.MySwaggerService()
+    
+    # display customer profile
+    message = swaggerservice.display_customer(email,password)
+
+    return message
+
+# define Flask API routes for SwaggerUI to add a customer to the database
 @app.route('/api/customer-info/addCustomer', methods=['POST'])
 def add_customer():
     # check the request Content-Type is application/x-www-form-urlencoded
@@ -255,5 +258,6 @@ def add_customer():
         message = swaggerservice.add_customer(first_name, last_name, email, password, phone_number)
         return message
 
+# start the Flask application if this script is executed directly
 if __name__== "__main__":
     app.run(debug=True)
