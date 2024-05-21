@@ -8,7 +8,6 @@ class MySwaggerService:
     # accessing environment variables 
     # for SQL DB connection and password_salt for password creation and verification 
     conn_str = os.environ.get('DB_CONNECTION')
-    password_salt = os.environ.get('PW_SALT').encode('utf-8') 
     
         
     # check if email exist in database
@@ -164,9 +163,6 @@ class MySwaggerService:
             created_date = datetime.now()
             modified_date = None
             
-            # convert password to hash + static salt via bcrypt algorithm
-            password_hash = bcrypt.hashpw(password, self.password_salt)
-            
             # check if email exist in the database. 
             # If it is exist, customer cannot add same email
             is_exist = self.check_duplicate(email, conn)
@@ -179,7 +175,8 @@ class MySwaggerService:
             modified_date = None
             
             # convert password to hash + static salt via bcrypt algorithm
-            password_hash = bcrypt.hashpw(password, self.password_salt)
+            password_salt = bcrypt.gensalt()
+            password_hash = bcrypt.hashpw(password, password_salt)
             
             # create cursor object
             cursor = conn.cursor()
@@ -188,9 +185,6 @@ class MySwaggerService:
                 sql_customer_insert_query = "EXEC spShopper_InsertAll ?, ?, ?, ?, ?, ?, ?"
                 cursor.execute(sql_customer_insert_query, (first_name, last_name, email, phone_number, created_date, modified_date, password_hash))
                 conn.commit()
-                
-                # close SQL cursor & connection
-                self.close_sql(cursor)
                 
                 return jsonify({'message': 'Customer\'s profile added successfully'}), 200
             except Exception as e:
