@@ -164,10 +164,6 @@ def check_password(password):
 # define Flask API routes for SwaggerUI to display products after user is authenticated and verified
 @app.route('/api/customer-info/getProducts', methods=['GET'])
 def get_all_customers():
-    # check the request Content-Type is application/x-www-form-urlencoded
-    if request.headers.get('Content-Type', ''):
-        return jsonify({'error': 'Unsupported Media Type.  Please send data with Content-Type: application/x-www-form-urlencoded'}), 415
-    
     email = request.args.get('email')
     password_string = request.args.get('password')
     
@@ -184,11 +180,7 @@ def get_all_customers():
 
 # define Flask API routes for SwaggerUI to display customer's profile after user is authenticated and verified
 @app.route('/api/customer-info/authentication', methods=['GET'])
-def get_customer_detail():
-    # check the request Content-Type is application/x-www-form-urlencoded
-    if request.headers.get('Content-Type', ''):
-        return jsonify({'error': 'Unsupported Media Type.  Please send data with Content-Type: application/x-www-form-urlencoded'}), 415
-    
+def get_customer_detail():   
     email = request.args.get('email')
     password_string = request.args.get('password')
     
@@ -206,10 +198,6 @@ def get_customer_detail():
 # define Flask API routes for SwaggerUI to add a customer to the database
 @app.route('/api/customer-info/addCustomer', methods=['POST'])
 def add_customer():
-    # check the request Content-Type is application/x-www-form-urlencoded
-    if request.headers.get('Content-Type', ''):
-        return jsonify({'error': 'Unsupported Media Type.  Please send data with Content-Type: application/x-www-form-urlencoded'}), 415
-
     # get input from query parameteter
     first_name = request.args.get('first_name')
     last_name = request.args.get('last_name')
