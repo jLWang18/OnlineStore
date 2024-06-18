@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, render_template, request, redirect, url_for
 from flask_swagger_ui import get_swaggerui_blueprint
 from datetime import datetime
+from flask_cors import CORS
 import pyodbc
 import mywebservice
 import myswaggerservice
@@ -8,6 +9,10 @@ import re
 
 # set up flask application
 app = Flask(__name__)
+
+# enable CORS so that any local host port (in this case, React application)
+# can request for resources from this Flask server
+CORS(app)
 
 ### Swagger specific ###
 SWAGGER_URL = '/swagger' 
@@ -24,22 +29,6 @@ swaggerui_blueprint = get_swaggerui_blueprint(
     
 app.register_blueprint(swaggerui_blueprint, url_prefix = SWAGGER_URL)
 ### End Swagger specific ###
-
-# define route for rendering the homepage
-@app.route('/', methods=['GET'])
-def index():
-    return render_template('index.html')
-
-# redirect user to the customer info page when the user clicks "sign in"
-@app.route('/signin', methods=['GET'])
-def signin():
-    # redirect to endpoint customer_info
-    return redirect(url_for('customer_info_ui'))
-
-# define route for rendering the customer_info page
-@app.route("/customer_info", methods=['GET'])
-def customer_info_ui():
-    return render_template('customer_info.html')
 
 # format phone input
 def format_phone(phone):
@@ -159,7 +148,34 @@ def check_password(password):
         return True
     else:
         return False 
+ 
+# define route for rendering the homepage
+@app.route('/', methods=['GET'])
+def index():
+    return render_template('index.html')
+
+# redirect user to the customer info page when the user clicks "sign in"
+@app.route('/signin', methods=['GET'])
+def signin():
+    # redirect to endpoint customer_info
+    return redirect(url_for('customer_info_ui'))
+
+# define route for rendering the customer_info page
+@app.route("/customer_info", methods=['GET'])
+def customer_info_ui():
+    return render_template('customer_info.html')    
          
+
+# define Flask API route for React UI to display products in the homepage
+@app.route('/api/products', methods=['GET'])
+def get_products():
+    # instantiate swagger service
+    webrservice = mywebservice.MyWebService()
+    
+    # display products
+    products = webrservice.show_products_ui()
+    return products
+
 
 # define Flask API routes for SwaggerUI to display products after user is authenticated and verified
 @app.route('/api/customer-info/getProducts', methods=['GET'])
