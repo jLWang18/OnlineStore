@@ -1,6 +1,4 @@
 import './App.css';
-import { useEffect, useMemo } from 'react';
-import { useTable } from "react-table";
 
 function HomeHeaders() {
   return (
@@ -11,113 +9,98 @@ function HomeHeaders() {
   );
 }
 
-async function getProductList() {
-
-  try {
-    // request: products data from the server
-    const response = await fetch("http://localhost:5000/api/products");
-
-    // convert response to JSON
-    const products = await response.json();
-
-   // console.log(products);
-
-    let productList = [];
-
-    products.forEach(product => {
-      productList.push(product)
+ function fetchProductList() {
+  // when the products is successfully fetched, 
+  //return array as the resolved value
+  return new Promise((resolve, reject) => {
+     // request: products data from the server
+     fetch("http://localhost:5000/api/products").then(response => {
+      // convert response to json
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return response.json();
     })
+    .then(products => {
+      // parsed response into array
+      let productList = [];
 
-    //console.log(productList);
-
-    return productList;
-
-  } catch (err) {
-    console.log(err);
-    return null;
-  }
+      products.forEach(product => {
+        productList.push(product)
+      })
+      
+      // return array as resolved value
+      resolve(productList);
+    })
+    .catch(error => {
+      // handle errors while fetching
+      reject(error);
+    })
+    
+  }) 
+  
     
 }
-// async function receiveList() {
-//    // get product list
-//    const productList = await getProductList();
-//    return productList
-// }
-async function ProductTable() {
-  // when I did this, I got
-  // Error: Objects are not valid as a React child (found: [object Promise]). If you meant to render a collection of children, use an array instead.
-   const productList = await getProductList();
-   
-   // aku udah coba call method receiveList as a way to return the productList. However, it returns Promise object 
-   //const productList = receiveList();
+async function getProductList(callback) {
+  try {
+    // get productList array
+    const productList = await fetchProductList();
+    
+    // pass the array to the callback
+    callback(productList);
 
-  console.log("Inside ProductTable function")
-  console.log(productList);
+  } catch(error) {
+    // if fetch is not successful, display an error
+    console.log("Error fetching data:", error)
+  }
+ 
+}
+ function ProductTable() {
+  // get the productList array
+  getProductList((productList) => {
+    console.log("ProductList array received", productList);
+  })
+  //  getProductList((productList) => {
+  //  return (
+  //   <table>
+  //     <tr>
+  //       <th>Product ID</th>
+  //       <th>Product Category</th>
+  //       <th>Product Name</th>
+  //       <th>Price</th>
+  //       <th>Quantity</th>
+  //     </tr>
+  //     <tr>
+  //       productList.
+  //       <td>1</td>
+  //       <td>Food</td>
+  //       <td>Hamburger</td>
+  //       <td>10</td>
+  //     </tr>
+  //   </table>
+  //  )
+  // })
 
-  const data = useMemo(() => productList, []);
+ 
 
-  // define table columns
-  const columns = useMemo(() => [
-    {
-      Header: "Product ID",
-      accessor: "product_id",
-    },
-    {
-      Header: "Product Category",
-      accessor: "product_category",
-    },
-    {
-      Header: "Product Name",
-      accessor: "product_name",
-    },
-    {
-      Header: "Price",
-      accessor: "product_price",
-    },
-    {
-      Header: "Quantity",
-      accessor: "in_stock_quantity",
-    },
-  ], []);
-
-  // create product table with these table functions
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow} = useTable(columns, data);
-
-
-  // a table must contains theaders and tbody
+  // display in the table
    return (
-    <div>
-      <table {...getTableProps()}>
-        <thead>
-          {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()}>
-              {headerGroup.headers.map((column) => (
-                <th {...column.getHeaderProps()}>
-                  {column.render("Header")}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody {...getTableBodyProps()}>
-          {rows.map((row) => {
-            prepareRow(row)
-            return (
-              <tr {...row.getRowProps()}>
-                {row.cells.map((cell) => (
-                  <td {...cell.getCellProps()}> {cell.render("Cell")} </td>
-                ))}
-
-              </tr>
-            ) 
-          })}
-
-        </tbody>
-      </table>
-    </div>
-
-   ); 
-
+    <table>
+      <tr>
+        <th>Product ID</th>
+        <th>Product Category</th>
+        <th>Product Name</th>
+        <th>Price</th>
+        <th>Quantity</th>
+      </tr>
+      <tr>
+        <td>1</td>
+        <td>Food</td>
+        <td>Hamburger</td>
+        <td>10</td>
+      </tr>
+    </table>
+   )
 
 }
 function Home() {
