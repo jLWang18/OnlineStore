@@ -1,6 +1,6 @@
 import './App.css';
-import { useEffect, useMemo } from 'react';
-import { useTable } from "react-table";
+import {displayTable, handleOrder} from './productTable.js';
+import { useEffect } from 'react';
 
 function HomeHeaders() {
   return (
@@ -11,115 +11,34 @@ function HomeHeaders() {
   );
 }
 
-async function getProductList() {
-
-  try {
-    // request: products data from the server
-    const response = await fetch("http://localhost:5000/api/products");
-
-    // convert response to JSON
-    const products = await response.json();
-
-   // console.log(products);
-
-    let productList = [];
-
-    products.forEach(product => {
-      productList.push(product)
-    })
-
-    //console.log(productList);
-
-    return productList;
-
-  } catch (err) {
-    console.log(err);
-    return null;
-  }
+ function ProductTable() {
+   // display products table
+    useEffect(() => {
+      displayTable()
+    }, [])
     
-}
-// async function receiveList() {
-//    // get product list
-//    const productList = await getProductList();
-//    return productList
-// }
-async function ProductTable() {
-  // when I did this, I got
-  // Error: Objects are not valid as a React child (found: [object Promise]). If you meant to render a collection of children, use an array instead.
-   const productList = await getProductList();
-   
-   // aku udah coba call method receiveList as a way to return the productList. However, it returns Promise object 
-   //const productList = receiveList();
-
-  console.log("Inside ProductTable function")
-  console.log(productList);
-
-  const data = useMemo(() => productList, []);
-
-  // define table columns
-  const columns = useMemo(() => [
-    {
-      Header: "Product ID",
-      accessor: "product_id",
-    },
-    {
-      Header: "Product Category",
-      accessor: "product_category",
-    },
-    {
-      Header: "Product Name",
-      accessor: "product_name",
-    },
-    {
-      Header: "Price",
-      accessor: "product_price",
-    },
-    {
-      Header: "Quantity",
-      accessor: "in_stock_quantity",
-    },
-  ], []);
-
-  // create product table with these table functions
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow} = useTable(columns, data);
-
-
-  // a table must contains theaders and tbody
-   return (
-    <div>
-      <table {...getTableProps()}>
+    return (
+      <>
+      <table id="myTable">
         <thead>
-          {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()}>
-              {headerGroup.headers.map((column) => (
-                <th {...column.getHeaderProps()}>
-                  {column.render("Header")}
-                </th>
-              ))}
-            </tr>
-          ))}
+          <tr>
+              <th>Select</th>
+              <th>Product ID</th>
+              <th>Product Category</th>
+              <th>Product Name</th>
+              <th>Price</th>
+              <th>Quantity</th>
+          </tr>
         </thead>
-        <tbody {...getTableBodyProps()}>
-          {rows.map((row) => {
-            prepareRow(row)
-            return (
-              <tr {...row.getRowProps()}>
-                {row.cells.map((cell) => (
-                  <td {...cell.getCellProps()}> {cell.render("Cell")} </td>
-                ))}
-
-              </tr>
-            ) 
-          })}
-
+        <tbody id="data-output">
         </tbody>
       </table>
-    </div>
-
-   ); 
-
+      <button type="submit" onClick={handleOrder}>Add to Cart</button>
+      </>
+    )
 
 }
+
 function Home() {
   return (
     <>
