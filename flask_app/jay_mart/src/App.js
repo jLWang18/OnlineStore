@@ -196,6 +196,7 @@ function Home() {
 
 }
 export function App() {
+export function App() {
   return <Home />
 }
 
