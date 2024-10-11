@@ -5,8 +5,7 @@ import bcrypt
 import os
 
 class MySwaggerService:
-    # accessing environment variables 
-    # for SQL DB connection and password_salt for password creation and verification 
+    # accessing environment variables for SQL DB connection 
     conn_str = os.environ.get('DB_CONNECTION')
     
         
