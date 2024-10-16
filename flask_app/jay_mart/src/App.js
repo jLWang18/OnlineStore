@@ -1,9 +1,11 @@
 import './App.css';
-import { useState, useEffect} from 'react';
+import { useRef, useState, useEffect, useContext} from 'react';
 import { Link, Outlet} from "react-router-dom";
 import { displayTable, handleOrder } from './productTable.js';
-import { validateLogin } from './login';
+import AuthContext from "./context/AuthProvider.js";
+import axios from './api/axios.js';
 
+const LOGIN_URL = "http://localhost:5000//api/customer-info/getProducts"
 
 function HomeHeaders() {
   return (
@@ -44,9 +46,16 @@ function HomeHeaders() {
 
 
 export function LogIn() {
+  const { setAuth } = useContext(AuthContext);
+
+  const userRef = useRef();
+
+  const [email, setEmail] = useState();
+  const [pwd, setPwd] = useState();
+
   // handle the states of input, initially input is empty ''
-  const initialValues = {email: "", password: ""};
-  const [formValues, setFormValues] = useState(initialValues);
+  // const initialValues = {email: "", password: ""};
+  // const [formValues, setFormValues] = useState(initialValues);
   // Handle errors initially empty
   const [formErrors, setFormErrors] = useState({});
   // check if it is submitted
@@ -79,17 +88,48 @@ export function LogIn() {
         return true;
       }
     }
-  const handleChange = (e) => {
-    // get the field name and field value
-    const { name, value } = e.target;
-    // change the state of the value from empty to the current value
-    setFormValues({...formValues, [name]: value});
-  }
+  // const handleChange = (e) => {
+  //   // get the field name and field value
+  //   const { name, value } = e.target;
+  //   // change the state of the value from empty to the current value
+  //   setFormValues({...formValues, [name]: value});
+  // }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     // validate email & password
-    setFormErrors(validate(formValues));
+    console.log("Here")
+    setFormErrors(validate(email, pwd));
+
+    // handle user authentication
+    try {
+
+      const response = await axios.post(LOGIN_URL, 
+        JSON.stringify({email: email, password: pwd}),
+        {
+          headers: {'Content-Type': 'application/json'},
+          withCredentials: true
+          
+        }
+      );
+      // print user input
+      console.log(JSON.stringify(response?.data))
+      // from the backend, I know I will get...
+      const hashedPassword = response?.data?.hashedPassword;
+      setAuth({email, pwd, hashedPassword})
+
+    } catch(err) {
+      if (!err?.response) {
+        console.log('No Server Response');
+      } else if (err.response?.status === 400) {
+        console.log('Misiing email or password');
+      } else if (err.response?.status === 401) {
+        console.log("Unauthorized");
+      } else {
+        console.log('Login Failed')
+      }
+
+    }
     // set submit as true
     setIsSubmit(true)
     
@@ -98,14 +138,15 @@ export function LogIn() {
     console.log(formErrors);
     // if there is no eerror (i.e., if email & password is valid, display the homepage)
     if (Object.keys(formErrors).length === 0 && isSubmit) {
-      // ...
+    console.log("Logged in sucessfully")
     }
   })
-  const validate = (values) => {
+
+  const validate = (email, pwd) => {
     const errors = {}
 
-    const validEmail = validateEmail(values.email);
-    const passwordValid = validatePassword(values.password);
+    const validEmail = validateEmail(email);
+    const passwordValid = validatePassword(pwd);
 
 
     if (!validEmail){
@@ -126,18 +167,20 @@ export function LogIn() {
       </nav>
       <br></br>
       <form onSubmit={handleSubmit}>
-      <div className="input-control">
-        {formErrors.email && <p className="error-message">{formErrors.email}</p>}
-        <label htmlFor="email">Email</label>
-        <input type="text" id="email" name="email" value={formValues.email} onChange={handleChange}/>
-      </div>
-      <div className="input-control">
-       {formErrors.password && <p className="error-message">{formErrors.password}</p>}
-        <label htmlFor="password">Password</label>
-        <input type="text" id="password" name="password" value={formValues.password} onChange={handleChange}/>
-      </div>
+        <div className="input-control">
+          {formErrors.email && <p className="error-message">{formErrors.email}</p>}
+          <label htmlFor="email">Email</label>
+          <input type="text" id="email" name="email" ref={userRef} autoComplete="off" 
+          onChange={(e) => setEmail(e.target.value)} value={email} required/>
+        </div>
+        <div className="input-control">
+        {formErrors.password && <p className="error-message">{formErrors.password}</p>}
+          <label htmlFor="password">Password</label>
+          <input type="password" id="password" name="password" ref={userRef} 
+          onChange={(e) => setPwd(e.target.value)} value={pwd} required/>
+        </div>
         <button type="submit">Log In</button>
-        <Link to='/signup'>Don't have an account? Sign up here</Link>
+        <Link to='/signup'>Need an account? Sign up</Link>
       </form>
     </div>
   )
@@ -195,7 +238,6 @@ function Home() {
   );
 
 }
-export function App() {
 export function App() {
   return <Home />
 }

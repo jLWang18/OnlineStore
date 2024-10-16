@@ -12,7 +12,10 @@ app = Flask(__name__)
 
 # enable CORS so that any local host port (in this case, React application)
 # can request for resources from this Flask server
-CORS(app)
+cors = CORS(app, resources={r"/api/*": {
+    "origins": ["http://localhost:3000"],
+    "supports_credentials": True
+}})
 
 ### Swagger specific ###
 SWAGGER_URL = '/swagger' 

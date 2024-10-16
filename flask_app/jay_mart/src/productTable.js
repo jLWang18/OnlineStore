@@ -90,7 +90,7 @@ export function handleOrder() {
       message += "\n\n";
     }
   }
-  // display products in the alert box window
+  // display products in the console window
   console.log(message);
 
   // After the user clicks "Add To Cart" button, uncheck all the checkboxes
