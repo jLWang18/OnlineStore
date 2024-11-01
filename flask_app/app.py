@@ -1,21 +1,47 @@
-from flask import Flask, jsonify, render_template, request, redirect, url_for
+from flask import Flask, jsonify, render_template, request, redirect, url_for, session, make_response
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity, create_refresh_token, set_access_cookies
 from flask_swagger_ui import get_swaggerui_blueprint
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_cors import CORS
 import pyodbc
 import mywebservice
 import myswaggerservice
-import re
+import re, os
+
+
 
 # set up flask application
 app = Flask(__name__)
 
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SECURE'] = True # set to True for HTTPS only
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(seconds=10)
+app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(hours=1)
+
+
+# set up JWT token
+jwt = JWTManager(app)
+
+
 # enable CORS so that any local host port (in this case, React application)
 # can request for resources from this Flask server
-cors = CORS(app, resources={r"/api/*": {
-    "origins": ["http://localhost:3000"],
-    "supports_credentials": True
-}})
+cors = CORS(app, resources={
+    r"/api/products": {
+        "origins": ["http://localhost:3000"],
+        "supports_credentials": True
+   }
+    ,
+    r"/api/login": {
+        "origins": ["http://localhost:3000"],
+        "supports_credentials": True
+    },
+    r"/api/refresh": {
+        "origins": ["http://localhost:3000"],
+        "supports_credentials": True
+    }  
+})
 
 ### Swagger specific ###
 SWAGGER_URL = '/swagger' 
@@ -172,13 +198,80 @@ def customer_info_ui():
 # define Flask API route for React UI to display products in the homepage
 @app.route('/api/products', methods=['GET'])
 def get_products():
-    # instantiate swagger service
+    # instantiate web service
     webrservice = mywebservice.MyWebService()
     
     # display products
     products = webrservice.show_products_ui()
     return products
 
+
+# define Flask API routes for SwaggerUI to authenticate a customer
+@app.route('/api/login', methods=['POST'])
+def login():
+    # get email & password input
+    data = request.get_json()
+    email = data["email"]
+    password_string = data["password"]
+    
+    # instatiate web service
+    webservice = mywebservice.MyWebService()
+    # convert a string password to bytes
+    password = bytes(password_string, 'utf-8')
+    
+    # check if email and password are valid  
+    is_authentication_valid =  webservice.authenticate_customer_ui(email, password)
+    
+    if (is_authentication_valid):
+        # create access token and refresh token
+        access_token = create_access_token(identity=email)
+        refresh_token = create_refresh_token(identity=email)
+        
+        # create a response object
+        response = make_response(jsonify({'access_token': access_token}))
+        response.set_cookie('refresh_token', refresh_token, httponly=True, samesite='Strict')
+        
+        return response
+    else:
+        return jsonify({'error': "Unauthorized"}), 401
+
+# refresh to get new token 
+@app.route("/api/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def refresh():
+    refresh_token = request.cookies.get('refresh_token')
+    
+    if refresh_token:
+        identity = get_jwt_identity()
+        access_token = create_access_token(identity=identity)
+        return jsonify(access_token=access_token)
+    else:
+        return jsonify({'error': 'Refresh token not found'}), 401
+# # web pages that required login needs to be protected
+# @app.route('/protected', methods=['GET'])
+# @jwt_required
+# def protected():
+#     # access the identity of the current user
+#     current_user = session.get('refresh_token')
+#     return jsonify(logged_in_as=current_user), 200
+
+
+
+# when user log out, it should clear the session
+# @app.route("/logout", methods=["POST"])
+# def logout():
+#     # unset cookies
+#     response = jsonify({"message": "log out successful"}), 200
+#     unset_jwt_cookies(response)
+#     return response
+
+# checkout page required login    
+# @app.route("/checkout")
+# def checkout():
+#     # check if user has log in and session is created
+#     if "email" in session:
+#         return render_template("checkout_page.html")
+        
 
 # define Flask API routes for SwaggerUI to display products after user is authenticated and verified
 @app.route('/api/customer-info/getProducts', methods=['GET'])
@@ -195,10 +288,10 @@ def get_all_customers():
     # get all products
     message = swaggerservice.display_products(email,password)
     
-    return message      
+    return message   
 
 # define Flask API routes for SwaggerUI to display customer's profile after user is authenticated and verified
-@app.route('/api/customer-info/authentication', methods=['GET'])
+@app.route('/api/customer-info/getProfile', methods=['GET'])
 def get_customer_detail():   
     email = request.args.get('email')
     password_string = request.args.get('password')
@@ -264,6 +357,36 @@ def add_customer():
         # add all inputs to the database
         message = swaggerservice.add_customer(first_name, last_name, email, password, phone_number)
         return message
+    
+# define Flask API routes for SwaggerUI to authenticate a customer
+@app.route('/api/customer-info/authentication', methods=['POST'])
+def authenticate():
+    # get email & password input
+    email = request.args.get("email")
+    password_string = request.args.get("password")
+    
+     # email alphanumeric followed by an @ symbol and the domain name
+    email_valid = check_email(email)
+    
+    # password must contain at least 8 characters long, 
+    # an uppercase, lowercase, a numbers, and a symbol
+    password_valid = check_password(password_string)
+    
+    if(email_valid == False):
+         error_message = 'Please enter a valid email at least between 13 and 31 characters'
+         return jsonify({'error message': error_message}), 400
+    elif(password_valid == False):
+        error_message = 'Please enter a valid password at least 8 characters long, 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol'
+        return jsonify({'error message': error_message}), 400
+    else:
+        # instatiate swagger service
+        swaggerservice = myswaggerservice.MySwaggerService()
+        # convert a string password to bytes
+        password = bytes(password_string, 'utf-8')
+        # check if email and password exist
+        message =  swaggerservice.authenticate_customer(email, password)
+        return message
+    
 
 # start the Flask application if this script is executed directly
 if __name__== "__main__":
