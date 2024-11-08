@@ -67,37 +67,34 @@ function fetchProductList() {
    })
 }
 
-export function handleOrder() {
+export function displayCart() {
   // reference the table
-  let grid = document.getElementById("myTable");
+  let grid = document.getElementById("product-table");
 
   // refrence the checkboxes
   let checkBoxes = grid.getElementsByTagName("input");
-  let message = "Your cart contains:\n\n"
+
+  // display data in the table
+  let placeholder = document.querySelector("#data-output");
+  let out = "";
 
   // loop through the checkboxes
   for (let i = 0; i < checkBoxes.length; i++) {
     if (checkBoxes[i].checked) {
       // select table row element
       let row = checkBoxes[i].parentNode.parentNode;
-     
-      // get the value of second row, third row, etc.
-      message += "Product ID: " + row.cells[1].innerHTML;
-      message += "\nProduct Category: " + row.cells[2].innerHTML;
-      message += "\nProduct Name: " + row.cells[3].innerHTML;
-      message += "\nPrice: " + row.cells[4].innerHTML;
-      message += "\nQuantity: " + row.cells[5].innerHTML;
-      message += "\n\n";
-    }
-  }
-  // display products in the console window
-  console.log(message);
+      console.log(row.cells[1].innerHTML)
 
-  // After the user clicks "Add To Cart" button, uncheck all the checkboxes
-  for (let i = 0; i < checkBoxes.length; i++) {
-    // if the checkbox is checked, uncheck it
-    if (checkBoxes[i].checked) {
-      checkBoxes[i].checked = false;
+      out += `
+         <tr> 
+          <td>${row.cells[1].innerHTML}</td>
+          <td>${row.cells[2].innerHTML}</td>
+          <td>${row.cells[3].innerHTML}</td>
+          <td>$${row.cells[4].innerHTML}</td>
+          <td>${row.cells[5].innerHTML}</td>
+         </tr>`;
     }
   }
+
+  placeholder.innerHTML = out;
 }

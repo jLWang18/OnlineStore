@@ -4,6 +4,7 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from datetime import datetime, timedelta
 from flask_cors import CORS
 import pyodbc
+import uuid
 import mywebservice
 import myswaggerservice
 import re, os
@@ -223,30 +224,41 @@ def login():
     is_authentication_valid =  webservice.authenticate_customer_ui(email, password)
     
     if (is_authentication_valid):
-        # create access token and refresh token
-        access_token = create_access_token(identity=email)
-        refresh_token = create_refresh_token(identity=email)
         
-        # create a response object
-        response = make_response(jsonify({'access_token': access_token}))
-        response.set_cookie('refresh_token', refresh_token, httponly=True, samesite='Strict')
+        # create access token with user's email as identity
+        access_token = create_access_token(identity=email)
+        
+        # get shopper id
+        shopper_id = webservice.get_shopper_id(email)
+        
+        if (shopper_id is None):
+            return jsonify({"error: there is an issue in getting shopper id"}, 500)
+        
+        # store access token in the database
+        response = webservice.add_token(shopper_id, access_token)
         
         return response
     else:
         return jsonify({'error': "Unauthorized"}), 401
 
-# refresh to get new token 
-@app.route("/api/refresh", methods=["POST"])
-@jwt_required(refresh=True)
-def refresh():
-    refresh_token = request.cookies.get('refresh_token')
+@app.route('/whoami')
+def whoami():
+    # get the access token
+     data = request.get_json()
+     access_token = data["access_token"]
+     
+     # instatiate web service
+     webservice = mywebservice.MyWebService()
+     
+     # get customer data
+     response = webservice.get_customer_data(access_token)
+     
+     # return customer data
+     return response
+     
+     
     
-    if refresh_token:
-        identity = get_jwt_identity()
-        access_token = create_access_token(identity=identity)
-        return jsonify(access_token=access_token)
-    else:
-        return jsonify({'error': 'Refresh token not found'}), 401
+    
 # # web pages that required login needs to be protected
 # @app.route('/protected', methods=['GET'])
 # @jwt_required

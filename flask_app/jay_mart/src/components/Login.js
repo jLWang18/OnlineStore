@@ -7,7 +7,7 @@ import axios from '../api/axios.js';
 const LOGIN_URL = "http://localhost:5000/api/login"
 
 const Login = () => {
-    const { setAuth } = useAuth();
+    const { login } = useAuth();
   
     // navigate user back to where they came from. 
     // Else, navigate to the home page by default 
@@ -49,10 +49,9 @@ const Login = () => {
             
           }
         );
-        console.log(JSON.stringify(response?.data));
         const accessToken = response?.data?.accessToken;
-        setAuth(accessToken);
-        localStorage.setItem("accessToken", accessToken);
+        login(accessToken);
+        
         // upon successful login, user can go to the desired page 
         navigate(from, {replace: true})
   
@@ -75,7 +74,7 @@ const Login = () => {
   }
     
     useEffect(() => {
-      // if there is no eerror (i.e., if email & password is valid, display the homepage)
+      // if there is no error (i.e., if email & password is valid, display the homepage)
       if (Object.keys(formErrors).length === 0 && isSubmit) {
       console.log("Logged in sucessfully")
       }
@@ -112,7 +111,7 @@ const Login = () => {
           <div className="input-control">
           {formErrors.password && <p className="error-message">{formErrors.password}</p>}
             <label htmlFor="password">Password</label>
-            <input type="password" id="password" name="password" ref={userRef} 
+            <input type="text" id="password" name="password" ref={userRef} 
             onChange={(e) => setPwd(e.target.value)} value={pwd} required/>
           </div>
           <button type="submit">Log In</button>

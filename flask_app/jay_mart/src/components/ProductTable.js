@@ -1,7 +1,10 @@
-import { useEffect} from 'react';
-import { displayTable, handleOrder } from '../logic/display_products.js';
+import { useEffect } from 'react';
+import { displayTable } from '../logic/display_products.js';
+import { useNavigate } from 'react-router-dom';
 
 const ProductTable = () => {
+  const navigate = useNavigate();
+
     // display products table
      useEffect(() => {
        displayTable()
@@ -9,7 +12,7 @@ const ProductTable = () => {
      
      return (
        <>
-       <table id="myTable">
+       <table id="product-table">
          <thead>
            <tr>
                <th>Select</th>
@@ -23,7 +26,7 @@ const ProductTable = () => {
          <tbody id="data-output">
          </tbody>
        </table>
-       <button type="submit" onClick={handleOrder}>Add to Cart</button>
+       <button type="submit" onClick={() => navigate("/addtocart")}>Add to Cart</button>
        </>
      )
  
