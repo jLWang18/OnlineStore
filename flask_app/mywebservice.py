@@ -312,7 +312,6 @@ class MyWebService:
                         result = cursor.fetchone()
                         
                         if result is not None:
-                            print(f"Customer's first name: {result[0]}")
                             
                             return jsonify({'data': result[0]}), 200
                         else:
