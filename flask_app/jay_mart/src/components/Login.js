@@ -49,7 +49,7 @@ const Login = () => {
             
           }
         );
-        const accessToken = response?.data?.accessToken;
+        const accessToken = response.data;
         login(accessToken);
         
         // upon successful login, user can go to the desired page 

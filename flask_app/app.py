@@ -8,6 +8,7 @@ import uuid
 import mywebservice
 import myswaggerservice
 import re, os
+import json
 
 
 
@@ -38,7 +39,7 @@ cors = CORS(app, resources={
         "origins": ["http://localhost:3000"],
         "supports_credentials": True
     },
-    r"/api/refresh": {
+    r"/api/whoami": {
         "origins": ["http://localhost:3000"],
         "supports_credentials": True
     }  
@@ -235,26 +236,35 @@ def login():
             return jsonify({"error: there is an issue in getting shopper id"}, 500)
         
         # store access token in the database
-        response = webservice.add_token(shopper_id, access_token)
+        webservice.add_token(shopper_id, access_token)
         
-        return response
+        return jsonify({"accessToken": access_token}), 200
     else:
         return jsonify({'error': "Unauthorized"}), 401
 
-@app.route('/whoami')
+@app.route('/api/whoami', methods=["GET"])
 def whoami():
     # get the access token
-     data = request.get_json()
-     access_token = data["access_token"]
+    data = request.headers.get("Authorization")
+    
+    
+    if not data:
+        return jsonify({'error': "Authorization token is missing"}), 401
+    
+    # extract token part if prefixed with "Bearer"
+    if data.startswith("Bearer "):
+        data = data.split(" ")[1]
+        parsed_data = json.loads(data)
+        access_token = parsed_data["accessToken"] 
      
-     # instatiate web service
-     webservice = mywebservice.MyWebService()
+    # instatiate web service
+    webservice = mywebservice.MyWebService()
      
-     # get customer data
-     response = webservice.get_customer_data(access_token)
-     
-     # return customer data
-     return response
+    # get customer's first name
+    response = webservice.get_customer_name(access_token)
+    
+    # return customer data
+    return response
      
      
     

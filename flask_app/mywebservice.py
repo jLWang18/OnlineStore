@@ -284,7 +284,7 @@ class MyWebService:
            else:
               return jsonify({"error: there is an issue in getting shopper id"}, 500)
     
-  def  get_customer_data(self, access_token):
+  def  get_customer_name(self, access_token):
        # open and close SQL database connection
        with pyodbc.connect(self.conn_str) as conn:
            # create cursor object
@@ -292,29 +292,40 @@ class MyWebService:
            
            # get shopper id
            sql_get_shopper_id = "SELECT fk_shopper_id FROM access_token WHERE token = ?"
-           cursor.execute(sql_get_shopper_id, (access_token))
+           cursor.execute(sql_get_shopper_id, (access_token,))
            
             # get result
            result = cursor.fetchone()
            
            # check if result is not None and is an integer
-           if result is not None and isinstance(result[0], int):
-              # get customer's id
-              shopper_id = result[0]
-              
-              try:
-                  sql_get_customer_data = "SELECT first_name, last_name, email, phone FROM shopper WHERE pk_shopper_id = ?"
-                  cursor.execute(sql_get_customer_data, (shopper_id))
-              
-                  # get customer data
-                  result = cursor.fetchone()
-                  
-              except Exception as e:
-                   error_message = "There was an issue in getting customer data: " + str(e)
-                   return jsonify({'error': error_message}), 500
+           if result is not None:
+               # get shopper id
+               shopper_id = result[0]
+               
+               if isinstance(shopper_id, int):
+                   
+                   try:
+                        sql_get_customer_data = "SELECT first_name FROM shopper WHERE pk_shopper_id = ?"
+                        cursor.execute(sql_get_customer_data, (shopper_id,))
+                    
+                        # get customer's first name
+                        result = cursor.fetchone()
+                        
+                        if result is not None:
+                            print(f"Customer's first name: {result[0]}")
+                            
+                            return jsonify({'data': result[0]}), 200
+                        else:
+                            return jsonify({'error': 'Customer not found'}), 404
+                    
+                   except Exception as e:
+                        error_message = "There was an issue in getting username " + str(e)
+                        return jsonify({'error': error_message}), 500
+               else:
+                  return jsonify({"error": "Shopper ID is not valid"}), 400 
+               
            else:
-              return jsonify({"error: there is an issue in getting shopper id"}, 500)
-                
+              return jsonify({"error": "Invalid access token or shopper ID not found"}), 404 
               
              
         

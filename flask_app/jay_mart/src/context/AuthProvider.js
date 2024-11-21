@@ -7,9 +7,13 @@ export const AuthProvider = ({children }) => {
     // Initialize `token` state with the token stored in localStorage (if any).
     const [token, setToken] = useState(localStorage.getItem("token"))
 
+    //console.log("Here in AuthProvider class")
+    //console.log("token = " + token)
+
     // Initialize `isLoggedIn` state based on whether there is a `token` or not.
     const [isLoggedIn, setIsLoggedIn] = useState(!!token);
     
+    //console.log("isLoggedIn = " + isLoggedIn)
     //const navigate = useNavigate();
     //const location = useLocation();
     //const from = location.state?.from?.pathname || "/";
@@ -18,7 +22,7 @@ export const AuthProvider = ({children }) => {
     useEffect(() => {
         if (token) {
             // If there's a `token`, store it in localStorage and set `isLoggedIn` to true.
-            localStorage.setItem('token', token);
+            localStorage.setItem('token', JSON.stringify(token));
             setIsLoggedIn(true);
 
           //  navigate(from, {replace: true})
