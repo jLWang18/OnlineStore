@@ -20,6 +20,7 @@ const Login = () => {
     const [email, setEmail] = useState();
     const [pwd, setPwd] = useState();
     const [isLoading, setIsLoading] = useState(false);
+    const [isVerified, setVerified] = useState(false);
    
     // Handle errors initially empty
     const [formErrors, setFormErrors] = useState({});
@@ -28,18 +29,72 @@ const Login = () => {
   
     
   
-    const handleSubmit =  async (e) => {
+    const handleSubmit =  (e) => {
       e.preventDefault();
       // validate email & password. 
       // if the form is validated, then proceed to authentication. If not, just return
-      if (!validate(email, pwd)) {
-        return
-      } 
+      const isValid = validate(email, pwd);
+      if (isValid == false) {
+        console.error("There is/are invalid input(s)")
+        return;
+      }
+
+      // else if input is valid, move on to verification
+      verify(email, pwd)
+      .then(accessToken => {
+        // upon successful login, set the accessToken and redirect user to the desired page
+        console.log("email and password is verified")
+        login(accessToken);
+        navigate(from, {replace: true})
+        setVerified(true)
+
+      }).catch(err => {
+        if (!err?.response) {
+          alert('No Server Response');
+        } else if (err.response?.status === 400) {
+          alert('Misiing email or password');
+        } else if (err.response?.status === 401) {
+          alert("Unauthorized: Either email or password is not valid");
+          // TODO: after alert, should clear all the fields
   
-      setIsLoading(true);
+        } 
+      })
       
+    }
+    
+  
+    const validate = (email, pwd) => {
+      const errors = {};
+  
+      const validEmail = validateEmail(email);
+      const validPassword = validatePassword(pwd);
+  
+      if (!validEmail && !validPassword){
+        errors.email = 'Email must be at least between 13 and 31 characters';
+        errors.password = 'Password must be at least 8 characters';
+        setFormErrors(errors);
+        return false;
+      } 
+      else if (!validEmail) {
+        errors.email = 'Email must be at least between 13 and 31 characters';
+        setFormErrors(errors);
+        return false;
+
+      } else if (!validPassword) {
+        errors.password = 'Password must be at least 8 characters';
+        setFormErrors(errors);
+        return false;
+
+      } else {
+        // all input are valid
+        return true
+      }
+    }
+
+    async function verify(email, pwd) {
       // handle user authentication
       try {
+        console.log("Verify...")
         // send user input as JSON format
         const response = await axios.post(LOGIN_URL, 
           JSON.stringify({email: email, password: pwd}),
@@ -49,55 +104,45 @@ const Login = () => {
             
           }
         );
-        const accessToken = response.data;
-        login(accessToken);
         
-        // upon successful login, user can go to the desired page 
-        navigate(from, {replace: true})
-  
-      } catch(err) {
-        if (!err?.response) {
-          alert('No Server Response');
-        } else if (err.response?.status === 400) {
-          alert('Misiing email or password');
-        } else if (err.response?.status === 401) {
-          alert("Unauthorized: Either email or password is not valid");
-          // TODO: after alert, should clear all the fields
-  
+        // if email and password is verified, then set access token
+        if (response.status >=200 && response.status < 300) {
+          const accessToken = response.data;
+          return accessToken
+
         } else {
-          alert('Login Failed')
+          // if email and password is not verified, it will jump to the catch block
+          throw new Error(`Unexpected status code: ${response.status}`)
+       }
+
+      } catch(err) {
+        // Handle axios error
+        if (err.response) {
+          // Handle error response from the server
+          throw {
+            response: {
+              status: err.response.status,
+              data: err.response.data,
+            },
+          };
+        } else {
+          throw new Error('No response from server');
         }
+     }
   
-      }
-      // set submit as true
-      setIsSubmit(true)
-  }
-    
+    }
+
     useEffect(() => {
       // if there is no error (i.e., if email & password is valid, display the homepage)
-      if (Object.keys(formErrors).length === 0 && isSubmit) {
-      console.log("Logged in sucessfully")
+      if (isVerified) {
+        console.log("Logged in sucessfully")
+
+      } else{
+        console.log("Log in is not sucessfull")
       }
-    })
+    },[isVerified])
+
   
-    const validate = (email, pwd) => {
-      const errors = {}
-  
-      const validEmail = validateEmail(email);
-      const validPassword = validatePassword(pwd);
-  
-  
-      if (!validEmail){
-        errors.email = 'Email must be at least between 13 and 31 characters';
-      } 
-      if (!validPassword) {
-        errors.password = 'Password must be at least 8 characters';
-      }
-  
-      setFormErrors(errors)
-      // return true if no errors. Else, return false
-      return Object.keys(formErrors).length === 0
-    }
   
     return (
       <div>
