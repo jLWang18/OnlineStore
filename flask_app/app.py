@@ -39,6 +39,10 @@ cors = CORS(app, resources={
         "origins": ["http://localhost:3000"],
         "supports_credentials": True
     },
+     r"/api/signup": {
+        "origins": ["http://localhost:3000"],
+        "supports_credentials": True
+    },
     r"/api/whoami": {
         "origins": ["http://localhost:3000"],
         "supports_credentials": True
@@ -178,24 +182,7 @@ def check_password(password):
         and re.search(number, password) and re.search(symbol, password)):
         return True
     else:
-        return False 
- 
-# define route for rendering the homepage
-@app.route('/', methods=['GET'])
-def index():
-    return render_template('index.html')
-
-# redirect user to the customer info page when the user clicks "sign in"
-@app.route('/signin', methods=['GET'])
-def signin():
-    # redirect to endpoint customer_info
-    return redirect(url_for('customer_info_ui'))
-
-# define route for rendering the customer_info page
-@app.route("/customer_info", methods=['GET'])
-def customer_info_ui():
-    return render_template('customer_info.html')    
-         
+        return False    
 
 # define Flask API route for React UI to display products in the homepage
 @app.route('/api/products', methods=['GET'])
@@ -208,10 +195,10 @@ def get_products():
     return products
 
 
-# define Flask API routes for SwaggerUI to authenticate a customer
+# define Flask API route for React UI to authenticate a customer
 @app.route('/api/login', methods=['POST'])
 def login():
-    # get email & password input
+    # get input from login form
     data = request.get_json()
     email = data["email"]
     password_string = data["password"]
@@ -242,6 +229,61 @@ def login():
     else:
         return jsonify({'error': "Unauthorized"}), 401
 
+# define Flask API route for React UI to add new customer to the database    
+@app.route('/api/signup', methods=["POST"])
+def signup():
+    # get input from signup form
+    data = request.get_json()
+    first_name = data['first_name']
+    last_name = data['last_name']
+    email = data['email']
+    password_string = data['password']
+    phone_number = data['phone_number']
+    
+    
+    # first name must be between 3 and 50 letters
+    first_name_valid = check_first_name(first_name)
+    
+    # last name must be between 3 and 150 letters
+    last_name_valid = check_last_name(last_name)
+    
+    # email alphanumeric followed by an @ symbol and the domain name
+    email_valid = check_email(email)
+    
+    # password must contain at least 8 characters long, 
+    # an uppercase, lowercase, a numbers, and a symbol
+    password_valid = check_password(password_string)
+    
+    # Check if phone contain only digits
+    phone_valid = contain_phone(phone_number)
+    
+    if (first_name_valid == False):
+        error_message = 'Please enter a valid first name at least between 3 and 50 letters'
+        return jsonify({'error message': error_message}), 400
+    elif(last_name_valid == False):
+        error_message = 'Please enter a valid last name at least between 3 and 150 letters'
+        return jsonify({'error message': error_message}), 400
+    elif(email_valid == False):
+         error_message = 'Please enter a valid email at least between 13 and 31 characters'
+         return jsonify({'error message': error_message}), 400
+    elif(password_valid == False):
+        error_message = 'Please enter a valid password at least 8 characters long, 1 uppercase letter, 1 lowercase letter, 1 number, and 1 symbol'
+        return jsonify({'error message': error_message}), 400
+    elif(phone_valid == False):
+         error_message = 'Please enter a valid phone containing 10 digits'
+         return jsonify({'error message': error_message}), 400
+    else:
+        # instatiate swagger service
+        webservice = mywebservice.MyWebService()
+        # convert a string password to bytes
+        password = bytes(password_string, 'utf-8')
+        # add all inputs to the database
+        message = webservice.add_customer(first_name, last_name, email, password, phone_number)
+        return message
+    
+    
+    
+    
 @app.route('/api/whoami', methods=["GET"])
 def whoami():
     # get the access token
@@ -265,35 +307,6 @@ def whoami():
     
     # return customer data
     return response
-     
-     
-    
-    
-# # web pages that required login needs to be protected
-# @app.route('/protected', methods=['GET'])
-# @jwt_required
-# def protected():
-#     # access the identity of the current user
-#     current_user = session.get('refresh_token')
-#     return jsonify(logged_in_as=current_user), 200
-
-
-
-# when user log out, it should clear the session
-# @app.route("/logout", methods=["POST"])
-# def logout():
-#     # unset cookies
-#     response = jsonify({"message": "log out successful"}), 200
-#     unset_jwt_cookies(response)
-#     return response
-
-# checkout page required login    
-# @app.route("/checkout")
-# def checkout():
-#     # check if user has log in and session is created
-#     if "email" in session:
-#         return render_template("checkout_page.html")
-        
 
 # define Flask API routes for SwaggerUI to display products after user is authenticated and verified
 @app.route('/api/customer-info/getProducts', methods=['GET'])

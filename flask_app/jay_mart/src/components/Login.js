@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation} from "react-router-dom";
 import { validateEmail, validatePassword } from '../logic/handle_inputs.js';
 import useAuth from '../hooks/useAuth.js';
 import axios from '../api/axios.js';
+import AxiosError from '../utils/AxiosError.js'
 
 const LOGIN_URL = "http://localhost:5000/api/login"
 
@@ -19,13 +20,10 @@ const Login = () => {
   
     const [email, setEmail] = useState();
     const [pwd, setPwd] = useState();
-    const [isLoading, setIsLoading] = useState(false);
     const [isVerified, setVerified] = useState(false);
    
     // Handle errors initially empty
     const [formErrors, setFormErrors] = useState({});
-    // check if it is submitted
-    const [isSubmit, setIsSubmit] = useState(false);
   
     
   
@@ -34,8 +32,8 @@ const Login = () => {
       // validate email & password. 
       // if the form is validated, then proceed to authentication. If not, just return
       const isValid = validate(email, pwd);
-      if (isValid == false) {
-        console.error("There is/are invalid input(s)")
+      if (isValid === false) {
+        alert("There is/are invalid input(s)")
         return;
       }
 
@@ -43,7 +41,6 @@ const Login = () => {
       verify(email, pwd)
       .then(accessToken => {
         // upon successful login, set the accessToken and redirect user to the desired page
-        console.log("email and password is verified")
         login(accessToken);
         navigate(from, {replace: true})
         setVerified(true)
@@ -55,46 +52,41 @@ const Login = () => {
           alert('Misiing email or password');
         } else if (err.response?.status === 401) {
           alert("Unauthorized: Either email or password is not valid");
-          // TODO: after alert, should clear all the fields
-  
-        } 
+        }
+         // after alert, should clear all the fields
+         setFormErrors("")
+         setEmail("")
+         setPwd("")
+
       })
-      
     }
     
-  
     const validate = (email, pwd) => {
       const errors = {};
   
       const validEmail = validateEmail(email);
       const validPassword = validatePassword(pwd);
   
-      if (!validEmail && !validPassword){
+      if (!validEmail) {
         errors.email = 'Email must be at least between 13 and 31 characters';
-        errors.password = 'Password must be at least 8 characters';
-        setFormErrors(errors);
-        return false;
       } 
-      else if (!validEmail) {
-        errors.email = 'Email must be at least between 13 and 31 characters';
-        setFormErrors(errors);
-        return false;
-
-      } else if (!validPassword) {
+      
+      if (!validPassword) {
         errors.password = 'Password must be at least 8 characters';
+      } 
+      
+      if (Object.keys(errors).length > 0) {
         setFormErrors(errors);
         return false;
-
-      } else {
-        // all input are valid
-        return true
       }
+      
+      return true;
+
     }
 
     async function verify(email, pwd) {
       // handle user authentication
       try {
-        console.log("Verify...")
         // send user input as JSON format
         const response = await axios.post(LOGIN_URL, 
           JSON.stringify({email: email, password: pwd}),
@@ -119,12 +111,10 @@ const Login = () => {
         // Handle axios error
         if (err.response) {
           // Handle error response from the server
-          throw {
-            response: {
-              status: err.response.status,
-              data: err.response.data,
-            },
-          };
+          throw new AxiosError("Request failed", {
+            status: err.response.status,
+            data: err.response.data
+          })
         } else {
           throw new Error('No response from server');
         }
@@ -138,7 +128,7 @@ const Login = () => {
         console.log("Logged in sucessfully")
 
       } else{
-        console.log("Log in is not sucessfull")
+        console.error("Log in is not sucessful")
       }
     },[isVerified])
 
@@ -154,9 +144,9 @@ const Login = () => {
             onChange={(e) => setEmail(e.target.value)} value={email} required/>
           </div>
           <div className="input-control">
-          {formErrors.password && <p className="error-message">{formErrors.password}</p>}
+            {formErrors.password && <p className="error-message">{formErrors.password}</p>}
             <label htmlFor="password">Password</label>
-            <input type="text" id="password" name="password" ref={userRef} 
+            <input type="password" id="password" name="password" ref={userRef} 
             onChange={(e) => setPwd(e.target.value)} value={pwd} required/>
           </div>
           <button type="submit">Log In</button>

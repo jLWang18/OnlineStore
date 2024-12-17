@@ -134,29 +134,65 @@ class MyWebService:
            self.close_sql(cursor)
         
            return error_message
-  
-   # submit customer info logic
-  def add_customer(self, first_name, last_name, email, phone, created_date, modified_date):
-      # add customer email to the database and check if added successfully
-      is_email_valid = self.add_customer_email(email, created_date, modified_date)
-            
-      # add customer phone to the database and check if added successfully
-      is_phone_valid = self.add_customer_phone( phone, created_date, modified_date)
-            
-      # get the email id from the database
-      email_id = self.get_email_id (email)
+       
+  # check if email exist in database
+  def check_duplicate(self, email, conn): 
+      # create cursor object
+      cursor = conn.cursor()
         
-      # get the phone_id from the database
-      phone_id = self.get_phone_id(phone)
+      # get email from the database
+      sql_get_email_query = "EXEC spShopper_GetEmail ?"
+      cursor.execute(sql_get_email_query, email)
         
-      # add first name, last name, email, and phone to the database 
-      if is_email_valid and is_phone_valid:
-          message = self.add_customer_name(first_name, last_name, email_id, phone_id, created_date, modified_date)
-          return message
+      # fetch the row tuple
+      email_result = cursor.fetchone()
+        
+      # if email does not exist, return true - customer can add their info to the databse
+      if (email_result is not None and isinstance(email_result[0], str)):
+          return True
       else:
-          # display err message: email input or phone input is not valid
-          return "Customer's email and/or phone is not valid"
+            return False
   
+  # add customer to the database
+  def add_customer(self, first_name, last_name, email, password, phone_number):
+      # open and close database connection
+       with pyodbc.connect(self.conn_str) as conn:
+           # default params
+            created_date = datetime.now()
+            modified_date = None
+            
+            # check if email exist in the database. 
+            # If it is exist, customer cannot add same email
+            is_exist = self.check_duplicate(email, conn)
+            
+            if (is_exist == True):
+                return jsonify({'error': 'An email already exist in the database. Customer cannot add the same email'}), 409
+            
+            # default params
+            created_date = datetime.now()
+            modified_date = None
+            
+            # convert password to hash + static salt via bcrypt algorithm
+            password_salt = bcrypt.gensalt()
+            password_hash = bcrypt.hashpw(password, password_salt)
+            
+            # create cursor object
+            cursor = conn.cursor()
+            
+            try:
+                sql_customer_insert_query = "EXEC spShopper_InsertAll ?, ?, ?, ?, ?, ?, ?"
+                cursor.execute(sql_customer_insert_query, (first_name, last_name, email, phone_number, created_date, modified_date, password_hash))
+                conn.commit()
+                
+                return jsonify({'message': 'Customer\'s profile added successfully'}), 200
+            except Exception as e:
+                
+                # close SQL cursor & connection
+                self.close_sql(cursor)
+                
+                error_message = "There was an issue adding customer's info: " + str(e)
+                return jsonify({'error': error_message}), 500
+
   def check_authentication(self, cursor, email, password):
       # compare bytes password with hashed_password in the database
         sql_customer_getpassword = "EXEC spShopper_GetPassword ?"
