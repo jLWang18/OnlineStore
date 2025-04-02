@@ -1,23 +1,14 @@
-import { useNavigate, useLocation} from "react-router-dom";
 import { createContext, useEffect, useState } from "react";
 
 const AuthContext = createContext({});
 
-export const AuthProvider = ({children }) => {
+export const AuthProvider = ({ children }) => {
     // Initialize `token` state with the token stored in localStorage (if any).
     const [token, setToken] = useState(localStorage.getItem("token"))
-
-    //console.log("Here in AuthProvider class")
-    //console.log("token = " + token)
 
     // Initialize `isLoggedIn` state based on whether there is a `token` or not.
     const [isLoggedIn, setIsLoggedIn] = useState(!!token);
     
-    //console.log("isLoggedIn = " + isLoggedIn)
-    //const navigate = useNavigate();
-    //const location = useLocation();
-    //const from = location.state?.from?.pathname || "/";
-
     // useEffect runs every time the `token` changes.
     useEffect(() => {
         if (token) {
@@ -25,7 +16,6 @@ export const AuthProvider = ({children }) => {
             localStorage.setItem('token', JSON.stringify(token));
             setIsLoggedIn(true);
 
-          //  navigate(from, {replace: true})
         } else {
              // If `token` is null, remove it from localStorage and set `isLoggedIn` to false.
             localStorage.removeItem('token');

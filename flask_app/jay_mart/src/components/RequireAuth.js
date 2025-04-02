@@ -1,16 +1,15 @@
-import { useLocation, Navigate, Outlet } from "react-router-dom";
-import useAuth from "../hooks/useAuth";
+import { Navigate, Outlet } from "react-router-dom";
+import useAuth from "../hooks/useAuth.js";
 
 const RequireAuth = () => {
-    const { auth } = useAuth();
-    const location = useLocation();
+    const { isLoggedIn } = useAuth();
 
     // Is the user logged in? If yes, they can go to the desired protected page. 
-    // If not, redirect them to the login page from the page they came from.
+    // If not, redirect them to the login page.
     return (
-        auth?.accessToken
+        isLoggedIn
         ? <Outlet></Outlet>
-        : <Navigate to="/login" state={{ from: location}} replace />
+        : <Navigate to="/login"/>
     );
 }
 

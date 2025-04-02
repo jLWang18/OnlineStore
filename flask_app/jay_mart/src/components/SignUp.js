@@ -167,7 +167,7 @@ const SignUp = () => {
     <div className="input-control">
       {formErrors.password && <p className="error-message">{formErrors.password}</p>}
       <label htmlFor="password">Password</label>
-      <input type="text" id="password" name="password" ref={userRef} autoComplete="off" 
+      <input type="password" id="password" name="password" ref={userRef} autoComplete="off" 
             onChange={(e) => setPwd(e.target.value)} value={pwd} required/>
     </div>
     <br/><br/>
