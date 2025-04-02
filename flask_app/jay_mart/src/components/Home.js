@@ -29,7 +29,7 @@ function HomeHeaders() {
           <>
             <h1>Jay Jay Mart</h1>
             <p>you can find what you need here</p>
-            <p><i>Notes: Please login before ordering products.</i></p>
+            <p><i>Notes: Please login before selecting and ordering products.</i></p>
           </>
         )}
       </div>

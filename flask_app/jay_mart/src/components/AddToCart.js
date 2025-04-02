@@ -1,14 +1,10 @@
-import { useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
-import { displayCart } from "../logic/display_products";
+import  useCart  from '../hooks/useCart.js';
 
 export default function AddToCart() {
     const navigate = useNavigate();
 
-    useEffect(() => {
-        // display user's selected items
-        displayCart()
-    }, [])
+    const { selectedItems } = useCart();
 
     return (
         <>
@@ -23,7 +19,18 @@ export default function AddToCart() {
                <th>Quantity</th>
            </tr>
          </thead>
-         <tbody id="data-output">
+         <tbody>
+            {selectedItems.map((selectedItem) => {
+                return (
+                    <tr key={selectedItem.product_id}>
+                        <td>{selectedItem.product_id}</td>
+                        <td>{selectedItem.product_category}</td>
+                        <td>{selectedItem.product_name}</td>
+                        <td>{selectedItem.product_price}</td>
+                        <td>{selectedItem.in_stock_quantity}</td>
+                    </tr>
+                )
+            })}
          </tbody>
        </table>
         <button onClick={() => navigate("/payment")}>Proceed to Payment</button>

@@ -30,71 +30,86 @@ function fetchProductList() {
     
       
   }
-  async function getProductList(callback) {
+  export async function getProductList() {
     try {
       // get productList array
       const productList = await fetchProductList();
-      
-      // pass the array to the callback
-     callback(productList);
-  
+      // return the products directly
+      return productList
     } catch(error) {
       // if fetch is not successful, display an error
       console.log("Error fetching data:", error)
+      return [] 
     }
    
   }
 
-  export function displayTable() {
-    // get the productList array
-    getProductList((productList) => {
-      // display data in the table
-      let placeholder = document.querySelector("#data-output");
-      let out = "";
-      productList.forEach(product => {
-        out += `
-           <tr>
-              <td><input type="checkbox"></td>
-              <td>${product.product_id}</td>
-              <td>${product.product_category}</td>
-              <td>${product.product_name}</td>
-              <td>$${product.product_price}</td>
-              <td>${product.in_stock_quantity}</td>
-           </tr>
-          `;
-      })
-      placeholder.innerHTML = out;
-   })
+export function getSelectedItems() {
+   // reference the table
+   let grid = document.getElementById("product-table");
+
+   // refrence the checkboxes
+   let checkBoxes = grid.getElementsByTagName("input");
+ 
+   let selectedItems = [];
+ 
+   // loop through the checkboxes
+   for (let i = 0; i < checkBoxes.length; i++) {
+     if (checkBoxes[i].checked) {
+       // select table row element
+       let row = checkBoxes[i].parentNode.parentNode;
+    
+       const item = {
+        id: row.cells[1].innerHTML,
+        category: row.cells[2].innerHTML,
+        name: row.cells[3].innerHTML,
+        price: row.cells[4].innerHTML,
+        quantity:row.cells[5].innerHTML
+       }
+       // add item to selectedItems array
+       selectedItems.push(item)
+     }
+   }
+   // return selectedItems array
+   return selectedItems;
 }
 
-export function displayCart() {
-  // reference the table
-  let grid = document.getElementById("product-table");
 
-  // refrence the checkboxes
-  let checkBoxes = grid.getElementsByTagName("input");
+export function displayCart(selectedItems) {
 
-  // display data in the table
-  let placeholder = document.querySelector("#data-output");
-  let out = "";
+  // loop through the array
+  for (let i = 0; i < selectedItems.length; i++) {
+    // print out selected items
+    console.log(selectedItems[i])
 
-  // loop through the checkboxes
-  for (let i = 0; i < checkBoxes.length; i++) {
-    if (checkBoxes[i].checked) {
-      // select table row element
-      let row = checkBoxes[i].parentNode.parentNode;
-      console.log(row.cells[1].innerHTML)
-
-      out += `
-         <tr> 
-          <td>${row.cells[1].innerHTML}</td>
-          <td>${row.cells[2].innerHTML}</td>
-          <td>${row.cells[3].innerHTML}</td>
-          <td>$${row.cells[4].innerHTML}</td>
-          <td>${row.cells[5].innerHTML}</td>
-         </tr>`;
-    }
   }
+  // // reference the table
+  // let grid = document.getElementById("product-table");
 
-  placeholder.innerHTML = out;
+  // // refrence the checkboxes
+  // let checkBoxes = grid.getElementsByTagName("input");
+
+  // // display data in the table
+  // let placeholder = document.querySelector("#data-output");
+  // let out = "";
+
+  // // loop through the checkboxes
+  // for (let i = 0; i < checkBoxes.length; i++) {
+  //   if (checkBoxes[i].checked) {
+  //     // select table row element
+  //     let row = checkBoxes[i].parentNode.parentNode;
+  //     console.log(row.cells[1].innerHTML)
+
+  //     out += `
+  //        <tr> 
+  //         <td>${row.cells[1].innerHTML}</td>
+  //         <td>${row.cells[2].innerHTML}</td>
+  //         <td>${row.cells[3].innerHTML}</td>
+  //         <td>$${row.cells[4].innerHTML}</td>
+  //         <td>${row.cells[5].innerHTML}</td>
+  //        </tr>`;
+  //   }
+  // }
+
+  // placeholder.innerHTML = out;
 }
