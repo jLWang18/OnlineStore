@@ -1,8 +1,28 @@
 # Online Store Website
 
-## E-commerce Platform for Credit-Based Purchases
+## Overview
 
-This project focuses on creating an online platform where customers can make purchases using credit options. It showcases full-stack development skills in SQL, Python, Flask API, and React Framework. Additionally, it aims to demonstrate knowledge in business transactions and processes.
+The Online Store Website is an e-commerce platform that enables customers to make purchases using a credit-based system. This project demonstrates full-stack development expertise in SQL, Python (Flask API), and React, along with business transaction logic.
+
+## Features
+
+* **User Authentication** – Secure login and account management.
+
+* **Product Catalog** – Browse available products with detailed information.
+
+* **Shopping Cart** – Add, view, and remove products.
+
+* **Credit-Based Purchases** – Transactions processed using a virtual credit system.
+
+## Recent Updates
+#### (April 2, 2025) AddToCart Feature
+* Users can add products to their cart after logging in.
+
+* View selected products in the cart.
+
+* Remove all selected products.
+
+* Demo Video: [Selecting Products After Login](https://www.loom.com/share/0f9bf9ef5b254d81a612c22033377425?sid=e9f83687-8240-4d68-90f1-7d15dcde1b9a)
 
 ## Prerequisites
 Before running the website, do the following:
