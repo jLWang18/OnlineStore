@@ -15,7 +15,7 @@ The Online Store Website is an e-commerce platform that enables customers to mak
 * **Credit-Based Purchases** – Transactions processed using a virtual credit system.
 
 ## Recent Updates
-#### (April 2, 2025) AddToCart Feature
+#### AddToCart Feature
 * Users can add products to their cart after logging in.
 
 * View selected products in the cart.
