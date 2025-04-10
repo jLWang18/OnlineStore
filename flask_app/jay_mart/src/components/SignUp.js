@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect} from 'react'
+import { useState, useEffect} from 'react'
 import { validateFirstName, validateLastName, validateEmail, validatePassword, validatePhone } from '../logic/handle_inputs.js';
 import { useNavigate, useLocation} from "react-router-dom";
 import axios from '../api/axios.js';
@@ -8,13 +8,11 @@ const SIGNUP_URL = "http://localhost:5000/api/signup"
 
 const SignUp = () => {
   
-  const [fname, setFirstName] = useState();
-  const [lname, setLastName] = useState();
-  const [email, setEmail] = useState();
-  const [pwd, setPwd] = useState();
-  const [phone, setPhone] = useState();
-
-  const userRef = useRef();
+  const [fname, setFirstName] = useState("");
+  const [lname, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [pwd, setPwd] = useState("");
+  const [phone, setPhone] = useState("");
 
   // Handle errors initially empty
   const [formErrors, setFormErrors] = useState({});
@@ -25,7 +23,7 @@ const SignUp = () => {
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
 
-  const [isVerified, setVerified] = useState(false);
+  const [isVerified, setVerified] = useState(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -61,6 +59,8 @@ const SignUp = () => {
     })
   }
   useEffect(() => {
+    if (isVerified === null) return; // don't run anything on initial load
+
     if (isVerified) {
       console.log("sign up is sucessful")
     } else {
@@ -95,7 +95,7 @@ const SignUp = () => {
     }
 
     if (!validPhone) {
-      errors.phone = 'Phone Number  must contain 10 digits';
+      errors.phone = 'Phone Number must contain 10 digits (excluding phone number formatting)';
     }
     
     // if there is/are invalid inputs, return false
@@ -147,34 +147,34 @@ const SignUp = () => {
     <div className="input-control">
       {formErrors.fname && <p className="error-message">{formErrors.fname}</p>}
       <label htmlFor="fname">First Name</label>
-      <input type="text" id="fname" name="fname" ref={userRef} autoComplete="off" 
+      <input type="text" id="fname" name="fname" autoComplete="off" 
             onChange={(e) => setFirstName(e.target.value)} value={fname} required/>
     </div>
     <br/><br/>
     <div className="input-control">
       {formErrors.lname && <p className="error-message">{formErrors.lname}</p>}
       <label htmlFor="lname">Last Name</label>
-      <input type="text" id="lname" name="lname" ref={userRef} autoComplete="off" 
+      <input type="text" id="lname" name="lname" autoComplete="off" 
             onChange={(e) => setLastName(e.target.value)} value={lname} required/>
     </div>
     <br/><br/>
     <div className="input-control">
       {formErrors.email && <p className="error-message">{formErrors.email}</p>}
       <label htmlFor="email">Email</label>
-      <input type="text" id="email" name="email" ref={userRef} autoComplete="off" 
+      <input type="text" id="email" name="email" autoComplete="off" 
             onChange={(e) => setEmail(e.target.value)} value={email} required/>
     </div>
     <div className="input-control">
       {formErrors.password && <p className="error-message">{formErrors.password}</p>}
       <label htmlFor="password">Password</label>
-      <input type="password" id="password" name="password" ref={userRef} autoComplete="off" 
+      <input type="password" id="password" name="password" autoComplete="off" 
             onChange={(e) => setPwd(e.target.value)} value={pwd} required/>
     </div>
     <br/><br/>
     <div className="input-control">
       {formErrors.phone && <p className="error-message">{formErrors.phone}</p>}
       <label htmlFor="phone">Phone</label>
-      <input type="text" id="phone" name="phone" ref={userRef} autoComplete="off" 
+      <input type="text" id="phone" name="phone" autoComplete="off" 
             onChange={(e) => setPhone(e.target.value)} value={phone}  required/>
     </div>
     <br/><br/>
