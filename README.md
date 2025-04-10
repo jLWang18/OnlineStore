@@ -22,7 +22,9 @@ The Online Store Website is an e-commerce platform that enables customers to mak
 
 * Remove all selected products.
 
-* Demo Video: [Selecting Products After Login](https://www.loom.com/share/0f9bf9ef5b254d81a612c22033377425?sid=e9f83687-8240-4d68-90f1-7d15dcde1b9a)
+* Demo Video 1: [Selecting Products After Login](https://www.loom.com/share/0f9bf9ef5b254d81a612c22033377425?sid=e9f83687-8240-4d68-90f1-7d15dcde1b9a)
+
+* Demo Video 2: [Selecting Products After Sign Up](https://www.loom.com/share/de1f3307d9b04996af58536e3d99c7e5?sid=e952d3bd-3b26-4d74-b999-32a681edb3c2)
 
 ## Prerequisites
 Before running the website, do the following:
