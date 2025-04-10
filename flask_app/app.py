@@ -32,22 +32,22 @@ jwt = JWTManager(app)
 cors = CORS(app, resources={
     r"/api/products": {
         "origins": ["http://localhost:3000"],
-        "supports_credentials": True
+        #"supports_credentials": True
    }
     ,
     r"/api/login": {
         "origins": ["http://localhost:3000"],
-        "supports_credentials": True
+        #"supports_credentials": True
     },
      r"/api/signup": {
         "origins": ["http://localhost:3000"],
-        "supports_credentials": True
+        #"supports_credentials": True
     },
     r"/api/whoami": {
         "origins": ["http://localhost:3000"],
-        "supports_credentials": True
+        #"supports_credentials": True
     }  
-})
+}, supports_credentials= True)
 
 ### Swagger specific ###
 SWAGGER_URL = '/swagger' 
@@ -64,19 +64,6 @@ swaggerui_blueprint = get_swaggerui_blueprint(
     
 app.register_blueprint(swaggerui_blueprint, url_prefix = SWAGGER_URL)
 ### End Swagger specific ###
-
-# format phone input
-def format_phone(phone):
-    # convert phone input in from (XXX)-(XXX)-(XXXX) to XXXXXXXXX format
-    replacements = [('(', ''), ('-', ''), (')', '')]
-    
-    for char, replacement in replacements:
-        if char in phone:
-            phone = phone.replace(char, replacement)
-    
-    # make sure there is no spaces         
-    phone = phone.replace(' ', '') 
-    return phone
 
 # check if phone number contains digits
 def contain_phone(phone_number):
@@ -234,11 +221,11 @@ def login():
 def signup():
     # get input from signup form
     data = request.get_json()
-    first_name = data['first_name']
-    last_name = data['last_name']
-    email = data['email']
-    password_string = data['password']
-    phone_number = data['phone_number']
+    first_name = data["first_name"]
+    last_name = data["last_name"]
+    email = data["email"]
+    password_string = data["password"]
+    phone_number = data["phone_number"]
     
     
     # first name must be between 3 and 50 letters
@@ -280,9 +267,6 @@ def signup():
         # add all inputs to the database
         message = webservice.add_customer(first_name, last_name, email, password, phone_number)
         return message
-    
-    
-    
     
 @app.route('/api/whoami', methods=["GET"])
 def whoami():

@@ -85,7 +85,7 @@ export const validateLastName = (lastNameInput) => {
 export const validatePhone = (phoneNumberInput) => {
   if(phoneNumberInput === '') {
     return false;
-  } else if (phoneNumberInput.length < 10) {
+  } else if (phoneNumberInput.length != 10) {
     return false;
   } else if (isValidNumber(phoneNumberInput) !== true) {
     return false;

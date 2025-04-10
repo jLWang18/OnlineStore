@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect} from 'react'
+import { useState, useEffect} from 'react'
 import { Link, useNavigate, useLocation} from "react-router-dom";
 import { validateEmail, validatePassword } from '../logic/handle_inputs.js';
 import useAuth from '../hooks/useAuth.js';
@@ -16,11 +16,9 @@ const Login = () => {
     const location = useLocation();
     const from = location.state?.from?.pathname || "/";
   
-    const userRef = useRef();
-  
-    const [email, setEmail] = useState();
-    const [pwd, setPwd] = useState();
-    const [isVerified, setVerified] = useState(false);
+    const [email, setEmail] = useState("");
+    const [pwd, setPwd] = useState("");
+    const [isVerified, setVerified] = useState(null);
    
     // Handle errors initially empty
     const [formErrors, setFormErrors] = useState({});
@@ -123,6 +121,8 @@ const Login = () => {
     }
 
     useEffect(() => {
+      if (isVerified === null) return; // don't run anything on initial load
+
       // if there is no error (i.e., if email & password is valid, display the homepage)
       if (isVerified) {
         console.log("Logged in sucessfully")
@@ -140,13 +140,13 @@ const Login = () => {
           <div className="input-control">
             {formErrors.email && <p className="error-message">{formErrors.email}</p>}
             <label htmlFor="email">Email</label>
-            <input type="text" id="email" name="email" ref={userRef} autoComplete="off" 
+            <input type="text" id="email" name="email" autoComplete="off" 
             onChange={(e) => setEmail(e.target.value)} value={email} required/>
           </div>
           <div className="input-control">
             {formErrors.password && <p className="error-message">{formErrors.password}</p>}
             <label htmlFor="password">Password</label>
-            <input type="password" id="password" name="password" ref={userRef} 
+            <input type="password" id="password" name="password" 
             onChange={(e) => setPwd(e.target.value)} value={pwd} required/>
           </div>
           <button type="submit">Log In</button>
