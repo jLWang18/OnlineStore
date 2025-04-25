@@ -4,6 +4,8 @@ import { validateEmail, validatePassword } from '../logic/handle_inputs.js';
 import useAuth from '../hooks/useAuth.js';
 import axios from '../api/axios.js';
 import AxiosError from '../utils/AxiosError.js'
+import '../styles/styles.css';
+
 
 const LOGIN_URL = "http://localhost:5000/api/login"
 
@@ -137,20 +139,24 @@ const Login = () => {
     return (
       <div>
         <form onSubmit={handleSubmit}>
-          <div className="input-control">
-            {formErrors.email && <p className="error-message">{formErrors.email}</p>}
-            <label htmlFor="email">Email</label>
-            <input type="text" id="email" name="email" autoComplete="off" 
-            onChange={(e) => setEmail(e.target.value)} value={email} required/>
+          <div class='input-control'>
+              <div class="input-control-email">
+                {formErrors.email && <p class="error-message">{formErrors.email}</p>}
+                <label htmlFor="email">Email</label>
+                <input type="text" id="email" name="email" autoComplete="off" 
+              onChange={(e) => setEmail(e.target.value)} value={email} required/>
+              </div>
+              <div class="input-control-password">
+                {formErrors.password && <p class="error-message">{formErrors.password}</p>}
+                <label htmlFor="password">Password</label>
+                <input type="password" id="password" name="password" 
+                onChange={(e) => setPwd(e.target.value)} value={pwd} required/>
+              </div>
+            <div class='options'>
+              <button class='button' type="submit">Log In</button>
+              <Link to='/signup'>Need an account? Sign up</Link>
+            </div>
           </div>
-          <div className="input-control">
-            {formErrors.password && <p className="error-message">{formErrors.password}</p>}
-            <label htmlFor="password">Password</label>
-            <input type="password" id="password" name="password" 
-            onChange={(e) => setPwd(e.target.value)} value={pwd} required/>
-          </div>
-          <button type="submit">Log In</button>
-          <Link to='/signup'>Need an account? Sign up</Link>
         </form>
       </div>
     )
