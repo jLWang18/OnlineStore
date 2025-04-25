@@ -3,6 +3,8 @@ import { validateFirstName, validateLastName, validateEmail, validatePassword, v
 import { useNavigate, useLocation} from "react-router-dom";
 import axios from '../api/axios.js';
 import AxiosError from '../utils/AxiosError.js';
+import '../styles/styles.css';
+
 
 const SIGNUP_URL = "http://localhost:5000/api/signup"
 
@@ -143,44 +145,42 @@ const SignUp = () => {
 
     return (
     <div>
-    <form onSubmit={handleSubmit}>
-    <div className="input-control">
-      {formErrors.fname && <p className="error-message">{formErrors.fname}</p>}
-      <label htmlFor="fname">First Name</label>
-      <input type="text" id="fname" name="fname" autoComplete="off" 
-            onChange={(e) => setFirstName(e.target.value)} value={fname} required/>
-    </div>
-    <br/><br/>
-    <div className="input-control">
-      {formErrors.lname && <p className="error-message">{formErrors.lname}</p>}
-      <label htmlFor="lname">Last Name</label>
-      <input type="text" id="lname" name="lname" autoComplete="off" 
-            onChange={(e) => setLastName(e.target.value)} value={lname} required/>
-    </div>
-    <br/><br/>
-    <div className="input-control">
-      {formErrors.email && <p className="error-message">{formErrors.email}</p>}
-      <label htmlFor="email">Email</label>
-      <input type="text" id="email" name="email" autoComplete="off" 
-            onChange={(e) => setEmail(e.target.value)} value={email} required/>
-    </div>
-    <div className="input-control">
-      {formErrors.password && <p className="error-message">{formErrors.password}</p>}
-      <label htmlFor="password">Password</label>
-      <input type="password" id="password" name="password" autoComplete="off" 
-            onChange={(e) => setPwd(e.target.value)} value={pwd} required/>
-    </div>
-    <br/><br/>
-    <div className="input-control">
-      {formErrors.phone && <p className="error-message">{formErrors.phone}</p>}
-      <label htmlFor="phone">Phone</label>
-      <input type="text" id="phone" name="phone" autoComplete="off" 
-            onChange={(e) => setPhone(e.target.value)} value={phone}  required/>
-    </div>
-    <br/><br/>
-    <button type="submit">Sign up</button>
+      <form onSubmit={handleSubmit}>
+        <div class="input-control">
+            <div class ="input-control-names-signup">
+              {formErrors.fname && <p className="error-message">{formErrors.fname}</p>}
+            <label htmlFor="fname">First Name</label>
+            <input type="text" id="fname" name="fname" autoComplete="off" 
+                  onChange={(e) => setFirstName(e.target.value)} value={fname} required/>
+          </div>
+          <div class = "input-control-names-signup">
+            {formErrors.lname && <p className="error-message">{formErrors.lname}</p>}
+            <label htmlFor="lname">Last Name</label>
+            <input type="text" id="lname" name="lname" autoComplete="off" 
+                  onChange={(e) => setLastName(e.target.value)} value={lname} required/>
+          </div>
+          <div class = "input-control-email-signup">
+            {formErrors.email && <p className="error-message">{formErrors.email}</p>}
+            <label htmlFor="email">Email</label>
+            <input type="text" id="email" name="email" autoComplete="off" 
+                  onChange={(e) => setEmail(e.target.value)} value={email} required/>
+          </div>
+          <div class = "input-control-password-signup">
+            {formErrors.password && <p className="error-message">{formErrors.password}</p>}
+            <label htmlFor="password">Password</label>
+            <input type="password" id="password" name="password" autoComplete="off" 
+                  onChange={(e) => setPwd(e.target.value)} value={pwd} required/>
+          </div>
+          <div class = "input-control-phone-signup">
+            {formErrors.phone && <p className="error-message">{formErrors.phone}</p>}
+            <label htmlFor="phone">Phone</label>
+            <input type="text" id="phone" name="phone" autoComplete="off" 
+                  onChange={(e) => setPhone(e.target.value)} value={phone}  required/>
+          </div>
+          <button class="button" type="submit">Sign up</button>
+      </div>
     </form>
-    </div>
+   </div>
     )
   }
 

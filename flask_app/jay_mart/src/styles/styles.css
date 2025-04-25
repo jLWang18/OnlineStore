@@ -104,3 +104,79 @@ body {
 .nav li:hover {
   background-color: #777;
 }
+
+/**Custom CSS Style for buttons feat/style-buttons branch **/
+.options {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.input-control {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  margin-left: 20px;
+
+}
+
+.input-control-email {
+  margin-bottom: 10px;
+}
+.input-control-email > label {  
+  margin-right: 46px;
+}
+
+.input-control-password {
+  margin-bottom: 10px;
+}
+.input-control-password > label {
+  margin-right: 20px;
+}
+
+
+.input-control-names-signup {
+  margin-bottom: 10px;
+}
+
+.input-control-names-signup > label {  
+  margin-right: 21px;
+}
+
+.input-control-email-signup {
+  margin-bottom: 10px;
+}
+.input-control-email-signup > label {  
+  margin-right: 58px;
+}
+
+.input-control-password-signup {
+  margin-bottom: 10px;
+}
+.input-control-password-signup > label {
+  margin-right: 30px;
+}
+
+.input-control-phone-signup {
+  margin-bottom: 10px;
+}
+.input-control-phone-signup > label {
+  margin-right: 50px;
+}
+
+.button {
+  padding-right: 10px;
+  padding-left: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.display-container {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  margin-left: 20px;
+
+}
+
+.display-table {
+  margin-bottom: 20px;
+}

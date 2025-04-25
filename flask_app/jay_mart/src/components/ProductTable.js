@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getProductList } from '../logic/display_products';
 import { useNavigate } from 'react-router-dom';
 import  useCart  from '../hooks/useCart'
+import '../styles/styles.css';
 
 const ProductTable = () => {
   const navigate = useNavigate();
@@ -34,18 +35,18 @@ const ProductTable = () => {
      
      return (
        <>
-       <table id="product-table">
-         <thead>
-           <tr>
-               <th>Select</th>
-               <th>Product ID</th>
-               <th>Product Category</th>
-               <th>Product Name</th>
-               <th>Price</th>
-               <th>Quantity</th>
-           </tr>
-         </thead>
-         <tbody>
+      <table class="display-table" id="product-table">
+        <thead>
+          <tr>
+              <th>Select</th>
+              <th>Product ID</th>
+              <th>Product Category</th>
+              <th>Product Name</th>
+              <th>Price</th>
+              <th>Quantity</th>
+          </tr>
+        </thead>
+        <tbody>
             {products.map((product) => {
               const isChecked = selectedItems.some((item) => item.product_id === product.product_id)
               return (
@@ -64,11 +65,14 @@ const ProductTable = () => {
                 </tr>
               )
             })}
-         </tbody>
-       </table>
+        </tbody>
+      </table>
+        
         {/* Navigte to addToCart page upon clicking*/}
-       <button type="button" onClick={() => navigate("/addtocart")}>Add to Cart</button>
-       <button type="reset" onClick={unSelectItems}> Unselect all</button>
+       <div class="options">
+            <button class="button" type="button" onClick={() => navigate("/addtocart")}>Add to Cart</button>
+            <button class="button" type="reset" onClick={unSelectItems}> Unselect all</button>
+       </div>
        </>
      )
  

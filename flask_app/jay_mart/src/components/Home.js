@@ -42,8 +42,10 @@ function HomeHeaders() {
 export default function Home() {
     return (
       <>
-      <HomeHeaders/>
-      <ProductTable />
+      <div class="display-container">
+        <HomeHeaders/>
+        <ProductTable />
+      </div>
       </>
     )
   
