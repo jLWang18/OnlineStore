@@ -32,6 +32,19 @@ const ProductTable = () => {
         
       });
      }
+
+
+    const handleNavigate = () => {
+      let count = selectedItems.length 
+
+      if (count > 0) {
+        navigate("/addtocart")
+      } else {
+        alert("Please select one or more items.")
+
+     }
+     
+    }
      
      return (
        <>
@@ -70,7 +83,7 @@ const ProductTable = () => {
         
         {/* Navigte to addToCart page upon clicking*/}
        <div class="options">
-            <button class="button" type="button" onClick={() => navigate("/addtocart")}>Add to Cart</button>
+            <button class="button" type="button" onClick={() => handleNavigate()}>Add to Cart</button>
             <button class="button" type="reset" onClick={unSelectItems}> Unselect all</button>
        </div>
        </>
