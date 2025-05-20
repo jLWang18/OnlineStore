@@ -110,7 +110,7 @@ const validatePhoneNumber = (phoneNumberField, phoneNumberInput) => {
   if(phoneNumberInput === '') {
     setError(phoneNumberField, 'Phone Number is required');
     return false;
-  } else if (phoneNumberInput.length < 13) {
+  } else if (phoneNumberInput.length < 10) {
     setError(phoneNumberField, 'Phone Number  must contain 10 digits');
     return false;
   } else if (isValidNumber(phoneNumberInput) !== true) {
