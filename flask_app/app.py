@@ -31,22 +31,19 @@ jwt = JWTManager(app)
 # can request for resources from this Flask server
 cors = CORS(app, resources={
     r"/api/products": {
-        "origins": ["http://localhost:3000"],
-        #"supports_credentials": True
+        "origins": ["http://localhost:3000"]
    }
     ,
     r"/api/login": {
-        "origins": ["http://localhost:3000"],
-        #"supports_credentials": True
+        "origins": ["http://localhost:3000"]
     },
      r"/api/signup": {
-        "origins": ["http://localhost:3000"],
-        #"supports_credentials": True
+        "origins": ["http://localhost:3000"]
     },
     r"/api/whoami": {
         "origins": ["http://localhost:3000"],
-        #"supports_credentials": True
-    }  
+    }
+    
 }, supports_credentials= True)
 
 ### Swagger specific ###
@@ -403,8 +400,20 @@ def authenticate():
         # convert a string password to bytes
         password = bytes(password_string, 'utf-8')
         # check if email and password exist
-        message =  swaggerservice.authenticate_customer(email, password)
+        message = swaggerservice.authenticate_customer(email, password)
         return message
+
+# define Flask API routes for SwaggerUI to add customer's order
+@app.route("/api/customer-info/addOrders", methods=['POST'])
+def addOrders():
+    # get customer's id
+    customer_id = request.args.get("customer_id")
+    
+    # instatiate swagger service
+    swaggerservice = myswaggerservice.MySwaggerService()
+    
+    message = swaggerservice.add_customer_order(customer_id)
+    return message
     
 
 # start the Flask application if this script is executed directly

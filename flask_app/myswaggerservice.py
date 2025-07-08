@@ -10,7 +10,7 @@ class MySwaggerService:
     
         
     # check if email exist in database
-    def check_duplicate(self, email, conn): 
+    def check_email_duplicate(self, email, conn): 
         # create cursor object
         cursor = conn.cursor()
         
@@ -21,8 +21,25 @@ class MySwaggerService:
         #fetch the row tuple
         email_result = cursor.fetchone()
         
-        # if email does not exist, return true - customer can add their info to the databse
+        # if email exist, return true - customer can add their info to the databse
         if (email_result is not None and isinstance(email_result[0], str)):
+            return True
+        else:
+            return False
+    
+    def is_customer_id_exist(self, customer_id, conn):
+        # create cursor object
+        cursor = conn.cursor()
+        
+        # get customer_id from the database
+        sql_get_customer_id_query = "SELECT pk_shopper_id FROM shopper WHERE pk_shopper_id = ?"
+        cursor.execute(sql_get_customer_id_query, (customer_id,))
+        
+        #fetch the row tuple
+        customer_id_result = cursor.fetchone()
+        
+        # if customer_id exist, return true
+        if (customer_id_result is not None and isinstance(customer_id_result[0], int)):
             return True
         else:
             return False
@@ -158,13 +175,10 @@ class MySwaggerService:
     def add_customer(self, first_name, last_name, email, password, phone_number):
         # open and close database connection
         with pyodbc.connect(self.conn_str) as conn:
-            # default params
-            created_date = datetime.now()
-            modified_date = None
             
             # check if email exist in the database. 
             # If it is exist, customer cannot add same email
-            is_exist = self.check_duplicate(email, conn)
+            is_exist = self.check_email_duplicate(email, conn)
             
             if (is_exist == True):
                 return jsonify({'error': 'An email already exist in the database. Customer cannot add the same email'}), 409
@@ -193,3 +207,38 @@ class MySwaggerService:
                 
                 error_message = "There was an issue adding customer's info: " + str(e)
                 return jsonify({'error': error_message}), 500
+    
+    def add_customer_order(self, customer_id):
+        # open and close database connection
+        with pyodbc.connect(self.conn_str) as conn:
+           
+            # check if customer's id exist in the database
+            is_exist = self.is_customer_id_exist(customer_id, conn)
+            
+            if (is_exist == False):
+                return jsonify({'error': 'Customer\'s id does not exist'}), 409
+            
+             # default params
+            created_date = datetime.now()
+            modified_date = None
+            
+            # create cursor object
+            cursor = conn.cursor()
+            
+            try:
+                sql_customer_id_insert_query = "INSERT INTO orders VALUES (?, ?, ?)"
+                cursor.execute(sql_customer_id_insert_query, (customer_id, created_date, modified_date))
+                conn.commit()
+                
+                return jsonify({'message': 'Customer\'s id is added successfully'}), 200
+            
+            except Exception as e:
+                
+                # close SQL cursor & connection
+                self.close_sql(cursor)
+                
+                error_message = "There was an issue adding customer's id: " + str(e)
+                return jsonify({'error': error_message}), 500
+    
+             
+        

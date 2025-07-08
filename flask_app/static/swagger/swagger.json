@@ -149,6 +149,37 @@
           }
         }
       }
+    },
+
+
+    "/api/customer-info/addOrders": {
+      "post": {
+        "description": "Add customer order",
+        "operationId": "createOrder",
+        "parameters":[
+          {
+            "name": "customer_id",
+            "in":"query",
+            "description": "customer's id",
+            "required": true,
+            "schema":{
+              "type":"integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Customer's order added successfully",
+            "content":{
+              "application/json": {
+                "schema":{
+                  "$ref":"#/components/schemas/orders"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -173,6 +204,14 @@
           },
           "phone_number": {
             "type": "string"
+          }
+        }
+      },
+      "orders": {
+        "type":"object",
+        "properties": {
+          "customer_id": {
+            "type":"integer"
           }
         }
       }
