@@ -26,6 +26,17 @@ const isValidNumber = (input) => {
   }
 }
 
+const isValidExpDate = (input) => {
+  var expDateFormat = /^(0[1-9]|1[0-2])\/\d{2}$/
+
+  if (expDateFormat.test(input)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+
 export const validateEmail = (emailInput) => {
   if (emailInput === '') {
     return false;
@@ -54,12 +65,10 @@ export const validatePassword = (password) => {
     return true;
     } else {
     return false;
-} 
-
+  } 
 }
 
 export const validateFirstName  = (firstNameInput) => {
- 
   if (isAlphabetic(firstNameInput) !== true) {
     return false;
   }else if (firstNameInput.length < 3 || firstNameInput.length > 50) {
@@ -85,9 +94,56 @@ export const validateLastName = (lastNameInput) => {
 export const validatePhone = (phoneNumberInput) => {
   if(phoneNumberInput === '') {
     return false;
-  } else if (phoneNumberInput.length != 10) {
+  } else if (phoneNumberInput.length !== 10) {
     return false;
   } else if (isValidNumber(phoneNumberInput) !== true) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+export const validateCardName = (cardNameInput) => {
+  // remove any spaces in the input
+  cardNameInput = cardNameInput.replace(/\s/g, '')
+
+  if (isAlphabetic(cardNameInput) === false) {
+    return false;
+  }else if (cardNameInput.length < 6 || cardNameInput.length > 200) {
+    return false;
+  }else {
+    return true;
+  }
+}
+
+export const validateCardNumber = (cardNumberInput) => {
+  if (cardNumberInput === '') {
+    return false;
+  } else if (cardNumberInput.length < 13 || cardNumberInput.length > 16) {
+    return false;
+  } else if (isValidNumber(cardNumberInput) === false) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+export const validateExpirationDate = (expirationDateInput) => {
+  if (isValidExpDate(expirationDateInput) === false) {
+    return false;
+  } else if (expirationDateInput.length !== 5) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+export const validateVerificationCode = (verificationCodeInput) => {
+  if (verificationCodeInput === '') {
+    return false;
+  } else if (verificationCodeInput.length < 3 || verificationCodeInput.length > 4) {
+    return false;
+  } else if (isValidNumber(verificationCodeInput) === false) {
     return false;
   } else {
     return true;
