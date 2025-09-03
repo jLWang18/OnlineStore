@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import  useCart  from '../hooks/useCart.js';
 import '../styles/styles.css';
+import useCheckout from '../hooks/useCheckout.js';
+import { useEffect } from 'react';
 
 const SHIPPING_COST = 5
 
@@ -9,22 +11,31 @@ export default function AddToCart() {
 
     const { selectedItems } = useCart();
 
-    const itemsTotalPrice = () => {
-        // loop thrrough selectedItems array and calculate total prices
-        let totalPrice = 0;
-        for (let i = 0; i < selectedItems.length; i++) {
-            // total price of an item = price * quantity
-            totalPrice += selectedItems[i].product_price * selectedItems[i].in_stock_quantity;
+    
+    const {subtotal, setSubtotal, shippingFee, setShippingFee, totalAmount, setTotalAmount} = useCheckout();
 
+    useEffect(() => {
+        // calculate subtotal (without shipping cost) and totalAmount (with shipping cost) 
+        const itemsTotalPrice = (selectedItems) => {
+            // loop thrrough selectedItems array and calculate total prices
+            let subtotal = 0;
+            for (let i = 0; i < selectedItems.length; i++) {
+                // subtotal amount of an item = price * quantity
+                subtotal += selectedItems[i].product_price * selectedItems[i].in_stock_quantity;
+
+            }
+             // total price of an item = subtotal + shipping cost
+            let totalAmount = subtotal + SHIPPING_COST;
+
+            setSubtotal(subtotal)
+            setShippingFee(SHIPPING_COST)
+            setTotalAmount(totalAmount)
         }
-        return totalPrice;
-    }
 
-    const itemsSubtotal = () => {
-        let totalPrice = itemsTotalPrice();
-        
-        return totalPrice + SHIPPING_COST;
-    }
+        itemsTotalPrice(selectedItems);
+
+    }, [selectedItems, setSubtotal, setTotalAmount])
+      
 
     return (
         <>
@@ -55,9 +66,9 @@ export default function AddToCart() {
             </tbody>
         </table>
         
-        <label><h4>items ({selectedItems.length}): ${itemsTotalPrice()}</h4></label>
-        <label><h4>shipping: ${SHIPPING_COST}</h4></label>
-        <label><h4>subtotal: ${itemsSubtotal()}</h4></label>
+        <label><h4>items ({selectedItems.length}): ${subtotal}</h4></label>
+        <label><h4>shipping: ${shippingFee}</h4></label>
+        <label><h4>subtotal: ${totalAmount}</h4></label>
 
         <div class="options">
             <button class="button" onClick={() => navigate("/payment")}>Proceed to Payment</button>

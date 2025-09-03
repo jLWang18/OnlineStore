@@ -1,5 +1,10 @@
 import { useState } from "react";
 import { validateCardName, validateCardNumber, validateExpirationDate, validateVerificationCode } from '../logic/handle_inputs.js';
+import  useCart  from '../hooks/useCart.js';
+import { fetchCustomerId } from "../logic/fetch_customer_id.js";
+import { addOrderRecord } from "../logic/add_order_record.js";
+import useCheckout from "../hooks/useCheckout.js";
+import { addOrderItem } from "../logic/add_order_item.js";
 
 export default function Payment() {
     // for payment input fields
@@ -18,10 +23,20 @@ export default function Payment() {
     // const {state, setState} = useState("");
     // const {zip, setZip} = useState("");
 
+    
+
     // Handle errors initially empty
     const [formErrors, setFormErrors] = useState({});
 
-    const handleSubmit = (e) => {
+    // for accessing order item
+    const { selectedItems } = useCart();
+
+    // for accessing the customer's name
+    //const [customerId, setCustomerId] = useState("");
+
+    const {subtotal, shippingFee, totalAmount} = useCheckout()
+
+    const handleSubmit =  async (e) => {
         e.preventDefault();
 
         const isValidPayment = validatePayment(cardName, cardNumber, expirationDate, verificationCode);
@@ -31,7 +46,24 @@ export default function Payment() {
             alert("There is/are invalid input(s)");
             return;
         } else {
-            alert("Congratz!! input successful :)");
+            // fetch customer's id
+            const customerId = await fetchCustomerId();
+
+            // add customer's id, subtotal, shippingFee, and total price to the order_record table
+            const orderId = await addOrderRecord(customerId, subtotal, shippingFee, totalAmount)
+
+
+            // loop over selectedItem
+            for (let i = 0; i < selectedItems.length; i++) {
+                // add each selected product to the order_item table
+                const product_id = selectedItems[i].product_id
+                const unit_price = selectedItems[i].product_price
+                const quantity = selectedItems[i].in_stock_quantity
+
+                await addOrderItem(orderId, product_id, unit_price, quantity)
+            }
+            
+            
 
             // after submission, clear all the fields
             setFormErrors("");
