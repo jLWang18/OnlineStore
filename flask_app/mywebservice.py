@@ -228,8 +228,8 @@ class MyWebService:
             
             return is_authentication_valid
                           
-  # display products
-  def show_products_ui(self):
+  # get products
+  def get_products(self):
        # open and close SQL database connection
         with pyodbc.connect(self.conn_str) as conn:
             # create cursor object
@@ -261,9 +261,116 @@ class MyWebService:
             
             conn.commit()
             
-        # diplay products    
+        # get products    
         return products
     
+  def is_customer_id_exist(self, customer_id, conn):
+        # create cursor object
+        cursor = conn.cursor()
+        
+        sql_get_customer_id = "SELECT pk_shopper_id FROM shopper WHERE pk_shopper_id = ?"
+        cursor.execute(sql_get_customer_id, (customer_id))
+        
+        result = cursor.fetchone()
+        
+        # if customer_id exist, return True
+        if result is not None and isinstance(result[0], int):
+            return True
+        else:
+            return False
+        
+  def is_order_id_exist(self, order_id, conn):
+      # create cursor object
+      cursor = conn.cursor()
+        
+      # get order id from the database
+      sql_get_order_id_query = "SELECT pk_order_id FROM order_record WHERE pk_order_id = ?"
+      cursor.execute(sql_get_order_id_query, (order_id,))
+        
+      # fetch the row tuple
+      order_id_result = cursor.fetchone()
+        
+      # if order_id exist, return true
+      if (order_id_result is not None and isinstance(order_id_result[0], int)):
+            return True
+      else:
+          return False
+    
+  def is_product_exist(self, product_id, unit_price, quantity, conn):
+      # create cursor object
+      cursor = conn.cursor()
+        
+      # get product id from the database
+      sql_get_product_id_query = "SELECT pk_product_id FROM product WHERE pk_product_id = ? AND product_price = ? AND in_stock_quantity = ?"
+      cursor.execute(sql_get_product_id_query, (product_id,unit_price, quantity))
+        
+      # fetch the row tuple
+      product_id_result = cursor.fetchone()
+        
+      # if product_id exist, return true
+      if (product_id_result is not None and isinstance(product_id_result[0], int)):
+          return True
+      else:
+        return False
+          
+  def get_customer_detail(self, conn, cursor, customer_id):
+      # open and close SQL database connection
+      with pyodbc.connect(self.conn_str) as conn:
+          # create cursor object
+          cursor = conn.cursor()
+          
+          # get customer detail from the databse, given the customer id
+          sql_get_customer = "SELECT pk_shopper_id, first_name, last_name, email, phone, created_date, modified_date FROM shopper WHERE pk_shopper_id = ?"
+          cursor.execute(sql_get_customer, (customer_id))
+          
+          # get customer
+          data = cursor.fetchone()
+          
+          customer_detail = {
+              'customer_id': data.pk_shopper_id,   
+              'first_name': data.first_name,
+              'last_name': data.last_name,
+              'email_address': data.email,
+              'mobile_phone': data.phone,
+              'created_date': data.created_date,
+              'modified_date': data.modified_date
+            }
+          
+          conn.commit()
+          
+          # return the customer
+          return customer_detail
+            
+  def get_customer(self, access_token):
+      # open and close SQL database connection
+        with pyodbc.connect(self.conn_str) as conn:
+            # create cursor object
+            cursor = conn.cursor()
+            
+            # get shopper id
+            sql_get_shopper_id = "SELECT fk_shopper_id FROM access_token WHERE token = ?"
+            cursor.execute(sql_get_shopper_id, (access_token,))
+            
+            result = cursor.fetchone()
+            
+            if result is not None:
+                # get shopper id
+                shopper_id = result[0]
+                
+                # is shopper_id an integer?
+                if isinstance(shopper_id, int):
+                    try:
+                        return self.get_customer_detail(conn, cursor, shopper_id)
+                    except Exception as e:
+                        error_message = "there is error in getting customer profile" + str(e)
+                        return jsonify({'error': error_message}), 500
+                else:
+                    # customer_id is not valid
+                    return jsonify({'error': 'customer_id is not valid'}), 400
+            else:
+                return jsonify({'error': "Invalid access token"}), 404
+              
+          
   
   def add_token(self, shopper_id, access_token):
       # open and close SQL database connection
@@ -287,8 +394,6 @@ class MyWebService:
                
                cursor.execute(sql_add_token, (shopper_id, access_token, issued_at, expires_at, last_used_at, is_revoked))
                conn.commit()
-               
-               #return jsonify({'message': 'access token was added successfully'}), 200
                
                # return access token when successfully added to the database 
                return access_token
@@ -361,6 +466,89 @@ class MyWebService:
                
            else:
               return jsonify({"error": "Invalid access token or shopper ID not found"}), 404 
+  
+
+  def add_customer_order(self, customer_id, subtotal, shipping_fee, total_amount):
+      # open and close database connection
+      with pyodbc.connect(self.conn_str) as conn:
+          # check if customer's id exist in the database
+          is_exist = self.is_customer_id_exist(customer_id, conn)
+          
+          if (is_exist == False):
+            return jsonify({'error': 'Customer\'s id does not exist'}), 404
+            
+          # default params
+          order_date = datetime.now() 
+          payment_status = "Paid" # assume all customers have a "Paid" status for now, for simplicity.
+          created_date = datetime.now()
+          modified_date = None
+            
+          # create cursor object
+          cursor = conn.cursor()
+            
+          try:
+              sql_customer_id_insert_query = "INSERT INTO order_record VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+              cursor.execute(sql_customer_id_insert_query, (customer_id, order_date, subtotal, shipping_fee, total_amount, payment_status, created_date, modified_date))
+              conn.commit()
               
-             
-        
+              # return the order id of the purchase
+              order_id = self.get_order_id()
+                
+              return order_id
+            
+          except Exception as e: 
+              # close SQL cursor & connection
+              self.close_sql(cursor)
+                
+              error_message = "There was an issue adding customer's id: " + str(e)
+              return jsonify({'error': error_message}), 500     
+    
+  def add_customer_order_item(self, order_id, product_id, unit_price, quantity):
+      # open and close database connection
+      with pyodbc.connect(self.conn_str) as conn:
+          is_order_id_exist = self.is_order_id_exist(order_id, conn)
+          is_product_exist = self.is_product_exist(product_id, unit_price, quantity, conn)
+            
+          if (is_order_id_exist == False or is_product_exist == False):
+            return jsonify({'error': 'Either order\'s id does not exist or product does not exist'}), 404
+            
+          # default params
+          created_date = datetime.now()
+          modified_date = None
+            
+          # create cursor object
+          cursor = conn.cursor()
+            
+          try: 
+              sql_order_insert_query = "INSERT INTO order_item VALUES (?, ?, ?, ?, ?, ?)"
+              cursor.execute(sql_order_insert_query, (order_id, product_id, quantity, unit_price, created_date, modified_date))
+              conn.commit()
+                
+              return jsonify({'message': 'Order item is added successfully'}), 200
+            
+          except Exception as e:
+              error_message = "There was an issue adding an order item: " + str(e)
+              return jsonify({'error': error_message}), 500           
+    
+  def get_order_id(self):
+      # open and close database connection
+      with pyodbc.connect(self.conn_str) as conn:
+           # create cursor object
+           cursor = conn.cursor()
+           
+           # get the latest order id by the latest created_date
+           sql_get_order_id = "SELECT TOP 1 pk_order_id FROM order_record ORDER BY created_date DESC"
+           cursor.execute(sql_get_order_id)
+              
+           # fetch the row tuple
+           result = cursor.fetchone()
+           
+           # get order id
+           order_id = result[0]
+           
+           # is order id an integer? 
+           if isinstance(order_id, int):
+               return str(order_id)
+           else:
+               return jsonify({'error': 'Customer\'s id does not exist'}), 404
+                

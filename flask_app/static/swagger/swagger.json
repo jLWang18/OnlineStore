@@ -152,7 +152,7 @@
     },
 
 
-    "/api/customer-info/addOrders": {
+    "/api/customer-info/addOrderRecord": {
       "post": {
         "description": "Add customer order",
         "operationId": "createOrder",
@@ -165,7 +165,41 @@
             "schema":{
               "type":"integer"
             }
+          },
+
+          {
+            "name": "subtotal",
+            "in":"query",
+            "description": "Total price of all items in the order (excluding shipping cost)",
+            "required": true,
+            "schema":{
+              "type":"number",
+              "format":"double"
+            }
+          },
+
+          {
+            "name": "shipping_fee",
+            "in":"query",
+            "description": "Shipping fee applied to the order",
+            "required": true,
+            "schema":{
+              "type":"number",
+              "format":"double"
+            }
+          },
+
+          {
+            "name": "total_amount",
+            "in":"query",
+            "description": "Final total price of the order (including shipping cost)",
+            "required": true,
+            "schema":{
+              "type":"number",
+              "format":"double"
+            }
           }
+
         ],
         "responses": {
           "201": {
@@ -173,7 +207,93 @@
             "content":{
               "application/json": {
                 "schema":{
-                  "$ref":"#/components/schemas/orders"
+                  "$ref":"#/components/schemas/orderRecord"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/api/customer-info/addOrderItem": {
+      "post":{
+        "description":"Add customer order items",
+        "operationId":"createOrderItems",
+        "parameters":[
+          {
+            "name":"order_id",
+            "in":"query",
+            "description": "order's id",
+            "required": true,
+            "schema":{
+              "type":"integer"
+            }
+          },
+          {
+            "name":"product_id",
+            "in":"query",
+            "description": "product's id",
+            "required": true,
+            "schema":{
+              "type":"integer"
+            }
+          },
+          {
+            "name":"unit_price",
+            "in":"query",
+            "description": "product's unit price",
+            "required": true,
+            "schema":{
+              "type":"number",
+              "format":"double"
+            }
+          },
+          {
+            "name":"quantity",
+            "in":"query",
+            "description": "product's quantity",
+            "required": true,
+            "schema":{
+              "type":"integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Customer's order items added sucessfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/orderItem"
+                }
+              }
+            }
+          }
+        }
+
+      }
+    },
+    "/api/customer-info/getProfile": {
+      "get":{
+        "parameters":[
+          {
+            "name":"customer_id",
+            "in":"query",
+            "description": "customer's id",
+            "required": true,
+            "schema":{
+              "type":"integer"
+            }
+          }
+        ],
+        "responses":{
+          "200":{
+            "description": "customer's profile displayed successfully",
+            "content":{
+              "application/json":{
+                "schema":{
+                  "$ref":"#/components/schemas/customer"
                 }
               }
             }
@@ -207,12 +327,42 @@
           }
         }
       },
-      "orders": {
+      "orderRecord": {
         "type":"object",
         "properties": {
           "customer_id": {
             "type":"integer"
+          },
+          "subtotal": {
+            "type":"number",
+            "format":"double"
+          },
+          "shipping_fee": {
+            "type":"number",
+            "format":"double"
+          },
+          "total_amount": {
+            "type":"number",
+            "format":"double"
           }
+        }
+      },
+      "orderItem": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type":"integer"
+          },
+          "product_id": {
+            "type":"integer"
+          },
+          "unit_price": {
+            "type":"number",
+            "format": "double"
+          },
+          "quantity": {
+            "type":"integer"
+          } 
         }
       }
     }

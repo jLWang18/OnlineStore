@@ -42,6 +42,15 @@ cors = CORS(app, resources={
     },
     r"/api/whoami": {
         "origins": ["http://localhost:3000"],
+    },
+    r"/api/getProfile": {
+        "origins": ["http://localhost:3000"]
+    },
+    r"/api/addOrderRecord": {
+        "origins": ["http://localhost:3000"]
+    },
+    r"/api/addOrderItem": {
+        "origins": ["http://localhost:3000"]
     }
     
 }, supports_credentials= True)
@@ -168,17 +177,79 @@ def check_password(password):
     else:
         return False    
 
-# define Flask API route for React UI to display products in the homepage
+# define Flask API route for React UI to get products in the homepage
 @app.route('/api/products', methods=['GET'])
 def get_products():
     # instantiate web service
     webrservice = mywebservice.MyWebService()
     
-    # display products
-    products = webrservice.show_products_ui()
+    # get products
+    products = webrservice.get_products()
     return products
 
+# define Flask API route for React UI to get customer
+@app.route('/api/getProfile', methods=['GET'])
+def get_profile():
+    # get the access token
+    data = request.headers.get("Authorization")
+    
+    if not data:
+        return jsonify({'error': "Authorization token is missing"}), 401
+    
+    try:
+        # extract token part if prefixed with "Bearer"
+        if data.startswith("Bearer "):
+            data = data.split(" ")[1]
+            parsed_data = json.loads(data)
+            access_token = parsed_data["accessToken"] 
+        else:
+            return jsonify({"error": "Invalid Authorization format"}), 401
+        
+        # instatiate web service
+        webservice = mywebservice.MyWebService()
+        
+        # get customer
+        response = webservice.get_customer(access_token)
+    
+        # return customer data
+        return response
+    except Exception as e:
+        return jsonify({"error": "Unexpected server error: " + str(e)}), 500
 
+# define Flask API route for React UI to add customer's order
+@app.route('/api/addOrderRecord', methods=['POST'])
+def addOrder_ui():
+    # get input from payment form
+    data = request.get_json()
+    customer_id = data["customer_id"]
+    subtotal = data["subtotal"]
+    shipping_fee = data["shipping_fee"]
+    total_amount = data["total_amount"]
+    
+    # instatiate web service
+    webservice = mywebservice.MyWebService()
+    
+    # return the order id of the purchase
+    response = webservice.add_customer_order(customer_id, subtotal, shipping_fee, total_amount)
+    return response
+
+# define Flask API route for React UI to add customer's order item
+@app.route("/api/addOrderItem", methods=['POST'])
+def addOrderItem_ui():
+    # get input from input parameter
+    data = request.get_json()
+    order_id = data["order_id"]
+    product_id = data["product_id"]
+    unit_price = data["unit_price"]
+    quantity = data["quantity"]
+    
+    # instatiate web service
+    webservice = mywebservice.MyWebService()
+    
+    message = webservice.add_customer_order_item(order_id, product_id, unit_price, quantity)
+    return message
+    
+ 
 # define Flask API route for React UI to authenticate a customer
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -309,17 +380,13 @@ def get_all_customers():
 # define Flask API routes for SwaggerUI to display customer's profile after user is authenticated and verified
 @app.route('/api/customer-info/getProfile', methods=['GET'])
 def get_customer_detail():   
-    email = request.args.get('email')
-    password_string = request.args.get('password')
-    
-    # convert a string password to bytes
-    password = bytes(password_string, 'utf-8')
+    customer_id = request.args.get('customer_id')
 
     # instantiate swagger service
     swaggerservice = myswaggerservice.MySwaggerService()
     
     # display customer profile
-    message = swaggerservice.display_customer(email,password)
+    message = swaggerservice.display_customer(customer_id)
 
     return message
 
@@ -404,17 +471,35 @@ def authenticate():
         return message
 
 # define Flask API routes for SwaggerUI to add customer's order
-@app.route("/api/customer-info/addOrders", methods=['POST'])
-def addOrders():
-    # get customer's id
+@app.route("/api/customer-info/addOrderRecord", methods=['POST'])
+def addOrder():
+    # get input parameters
     customer_id = request.args.get("customer_id")
+    subtotal = request.args.get("subtotal")
+    shipping_fee = request.args.get("shipping_fee")
+    total_amount = request.args.get("total_amount")
     
     # instatiate swagger service
     swaggerservice = myswaggerservice.MySwaggerService()
     
-    message = swaggerservice.add_customer_order(customer_id)
+    message = swaggerservice.add_customer_order(customer_id, subtotal, shipping_fee, total_amount)
     return message
+
+# define Flask API routes for SwaggerUI to add customer's order item
+@app.route("/api/customer-info/addOrderItem", methods=['POST'])
+def addOrderItem():
+    # get input from query parameteter
+    order_id = request.args.get("order_id")
+    product_id = request.args.get("product_id")
+    unit_price = request.args.get("unit_price")
+    quantity = request.args.get("quantity")
     
+    # instatiate swagger service
+    swaggerservice = myswaggerservice.MySwaggerService()
+    
+    message = swaggerservice.add_customer_order_item(order_id, product_id, unit_price, quantity)
+    return message
+
 
 # start the Flask application if this script is executed directly
 if __name__== "__main__":
