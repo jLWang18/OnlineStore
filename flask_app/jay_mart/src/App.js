@@ -6,6 +6,7 @@ import {Routes, Route} from "react-router-dom";
 import AddToCart from './components/AddToCart.js';
 import Payment from './components/Payment.js';
 import RequireAuth from './components/RequireAuth.js';
+import Confirmation from './components/Confirmation.js';
 
 
 
@@ -23,6 +24,7 @@ export function App() {
           <Route element={<RequireAuth />}>
             <Route path="/addtocart" element={<AddToCart />}/>
             <Route path="/payment" element={<Payment />}/>
+            <Route path="/confirmation/:orderId" element={<Confirmation />}/>
           </Route>
 
         </Routes>

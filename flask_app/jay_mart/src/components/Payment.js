@@ -5,6 +5,8 @@ import { fetchCustomerId } from "../logic/fetch_customer_id.js";
 import { addOrderRecord } from "../logic/add_order_record.js";
 import useCheckout from "../hooks/useCheckout.js";
 import { addOrderItem } from "../logic/add_order_item.js";
+import { addPayment } from "../logic/add_payment.js";
+import { useNavigate } from 'react-router-dom';
 
 export default function Payment() {
     // for payment input fields
@@ -15,6 +17,9 @@ export default function Payment() {
 
     const [expirationDate, setExpirationDate] = useState("");
     const [verificationCode, setVerificationCode] = useState("");
+
+    // navigate to home page when payment is successfully added
+    const navigate = useNavigate();
 
     // for shipping input fields
     // const {streetAddressOne, setStreetAddressOne} = useState("");
@@ -63,8 +68,23 @@ export default function Payment() {
                 await addOrderItem(orderId, product_id, unit_price, quantity)
             }
             
+            // extract the last 4 digits of credit card number
+            let length = cardNumber.length
+            let index = length - 4
+            let last4 = cardNumber.slice(index)
             
-
+            // add payment info a to the payment database 
+            // and upon sucessful insertion, return order id
+            const returned_order_id = await addPayment(customerId, orderId, totalAmount, last4, cardType)
+            
+            // if payment is sucessfully (returned order id is not null)
+            if (returned_order_id) {
+                // direct user to the confirmation page
+                navigate(`/confirmation/${returned_order_id}`)
+            } else {
+                alert("payment info is not added successfully.")
+            }
+            
             // after submission, clear all the fields
             setFormErrors("");
             setCardName("");
