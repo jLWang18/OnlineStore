@@ -303,3 +303,80 @@ class MySwaggerService:
                 
                 error_message = "There was an issue adding an order item: " + str(e)
                 return jsonify({'error': error_message}), 500
+            
+     
+    
+    def add_customer_payment(self, customer_id, order_id, total_price, payment_token, last_4_digits, card_type):
+        # open and close database connection
+        with pyodbc.connect(self.conn_str) as conn:
+            is_customer_id_exist = self.is_customer_id_exist(customer_id, conn)
+            is_order_id_exist = self.is_order_id_exist(order_id, conn)
+            
+            if (is_customer_id_exist == False or is_order_id_exist == False):
+                return {'error': 'Either customer\'s id does not exist or order\'s id does not exist'}, 404       
+            
+            # default params
+            payment_status = "Paid" # assume all customers have a "Paid" status for now, for simplicity
+            created_date = datetime.now()
+            
+            # create cursor object
+            cursor = conn.cursor()
+            
+            try:
+                sql_payment_insert_query = "INSERT INTO payment VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                cursor.execute(sql_payment_insert_query, (customer_id, order_id, total_price, payment_status, payment_token, last_4_digits, card_type, created_date))
+                conn.commit()
+                
+                return {'message': 'payment info is added successfully', 'order_id': order_id}, 200
+            
+            except Exception as e:
+                
+                error_message = "There was an issue adding payment info: " + str(e)
+                return {'error': error_message}, 500
+    
+    def get_payment_info(self, order_id):
+      with pyodbc.connect(self.conn_str) as conn:
+        # create cursor object
+        cursor = conn.cursor()
+        
+        sql_get_payment = "SELECT card_type, last_4_digits FROM payment WHERE fk_order_id = ?"
+        cursor.execute(sql_get_payment, (order_id,))
+                
+        # get payment
+        data = cursor.fetchone()
+        payment_info = {
+            'card_type': data.card_type,
+            'last_4_digits': data.last_4_digits
+        }
+        
+        conn.commit()
+        return payment_info
+      
+    def get_payment(self, order_id):
+      with pyodbc.connect(self.conn_str) as conn:
+            # create cursor object
+            cursor = conn.cursor()
+            
+            # get order id
+            sql_get_order_id = "SELECT fk_order_id FROM payment WHERE fk_order_id = ?"
+            cursor.execute(sql_get_order_id, (order_id,))
+            
+            result = cursor.fetchone()
+            
+            if result is not None:
+                # get order id
+                order_id = result[0]
+                
+                if isinstance(order_id, int):
+                    try:
+                        return self.get_payment_info(order_id)
+                    except Exception as e:
+                        error_message = "There was an issue getting payment info: " + str(e)
+                        return {'error': error_message}, 500
+                else:
+                    # order_id is not valid
+                    return jsonify({'error': 'order_id is not valid'}), 400
+            else:
+                return jsonify({'error': "Invalid order id"}), 404       
+    
+   

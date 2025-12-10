@@ -51,7 +51,13 @@ cors = CORS(app, resources={
     },
     r"/api/addOrderItem": {
         "origins": ["http://localhost:3000"]
-    }
+    },
+     r"/api/addPayment": {
+        "origins": ["http://localhost:3000"]
+    },
+     r"/api/getPayment/*": {
+         "origins": ["http://localhost:3000"]
+     }
     
 }, supports_credentials= True)
 
@@ -249,7 +255,40 @@ def addOrderItem_ui():
     message = webservice.add_customer_order_item(order_id, product_id, unit_price, quantity)
     return message
     
- 
+# define Flask API routes for React UI to add customer's payment info
+@app.route("/api/addPayment", methods=['POST'])
+def addPayment_ui():
+    # get input from input parameter
+    data = request.get_json()
+    customer_id = data["customer_id"]
+    order_id = data["order_id"]
+    total_price = data["total_price"]
+    
+    last_4_digits = data["last_4_digits"]
+    card_type = data["card_type"]
+    
+    # payment token must be randomly generated
+    payment_token = generate_test_token()
+    
+    # instantiate web service
+    swaggerservice = mywebservice.MyWebService()
+    
+    result, status = swaggerservice.add_customer_payment_ui(customer_id, order_id, total_price, payment_token, last_4_digits, card_type)
+    return jsonify(result), status
+
+# define Flask API route for React UI to get payment info (cardType and last4 digits)
+@app.route('/api/getPayment/<int:order_id>', methods=['GET'])
+def getPayment_ui(order_id):
+    # instantiate web service
+    webservice = mywebservice.MyWebService()
+    
+    # get payment info (cardType and last4 digits)
+    response = webservice.get_payment_ui(order_id)
+    
+    return response
+    
+    
+    
 # define Flask API route for React UI to authenticate a customer
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -500,6 +539,52 @@ def addOrderItem():
     message = swaggerservice.add_customer_order_item(order_id, product_id, unit_price, quantity)
     return message
 
+# generate random test token
+def generate_test_token():
+    # generate token
+    prefix = "tok_test_"
+    token_id = uuid.uuid4()
+    
+    # connvert token of type id into string
+    token_str = str(token_id)
+    
+    # remove hypen from token
+    token = token_str.replace("-", "")
+    test_token = prefix + token
+    return test_token
+    
+# define Flask API routes for SwaggerUI to add customer's payment info
+@app.route("/api/customer-info/addPayment", methods=['POST'])
+def addPayment():
+    # get input from query parameter
+    customer_id = request.args.get("customer_id")
+    order_id = request.args.get("order_id")
+    total_price = request.args.get("total_price")
+    
+    last_4_digits = request.args.get("last_4_digits")
+    card_type = request.args.get("card_type")
+    
+    # payment token must be randomly generated
+    payment_token = generate_test_token()
+    
+    # instantiate swagger service
+    swaggerservice = myswaggerservice.MySwaggerService()
+    
+    
+    result, status = swaggerservice.add_customer_payment(customer_id, order_id, total_price, payment_token, last_4_digits, card_type)
+    return jsonify(result), status
+    
+# define Flask API route for Swagger UI to get payment info (cardType and last4 digits)
+@app.route('/api/customer-info/getPayment/<int:order_id>', methods=['GET'])
+def getPayment(order_id):
+    # instantiate swagger service
+    swaggerservice = myswaggerservice.MySwaggerService()
+    
+    # get payment info (cardType and last4 digits)
+    response = swaggerservice.get_payment(order_id)
+    
+    return response   
+    
 
 # start the Flask application if this script is executed directly
 if __name__== "__main__":
