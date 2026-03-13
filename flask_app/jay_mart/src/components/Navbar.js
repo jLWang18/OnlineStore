@@ -2,20 +2,29 @@ import { Link} from "react-router-dom";
 import useAuth from '../hooks/useAuth.js';
 import { useEffect, useState } from "react";
 import { fetchUserName } from "../logic/fetch_username.js";
+import { fetchCustomerId } from "../logic/fetch_customer_id.js";
+import useCustomer from "../hooks/useCustomer.js";
 
 export default function Navbar() {
     const {isLoggedIn, logout} = useAuth();
     const [username, setUsername] = useState("");
+    const {setCustomerId} = useCustomer();
 
     useEffect(() => {
-        // if the user is logged in, fetch username. Else, return 
-        if (isLoggedIn) {
-            fetchUserName(setUsername);
-        } else {
-            return
-        }
-        
-    }, [isLoggedIn])
+        // upon login, fetch and set username and get customerId
+        const fetchData = async () => {
+            if (isLoggedIn) {
+                try {
+                    await fetchUserName(setUsername);
+                    const customerId = await fetchCustomerId();
+                    setCustomerId(customerId);
+                } catch (error) {
+                    console.error("Error fetching user data:", error);
+                }
+            }
+        };
+        fetchData();
+    }, [isLoggedIn]);
 
 
     return (

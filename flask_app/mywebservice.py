@@ -471,24 +471,33 @@ class MyWebService:
   def add_customer_order(self, customer_id, subtotal, shipping_fee, total_amount):
       # open and close database connection
       with pyodbc.connect(self.conn_str) as conn:
+          
           # check if customer's id exist in the database
           is_exist = self.is_customer_id_exist(customer_id, conn)
           
           if (is_exist == False):
             return jsonify({'error': 'Customer\'s id does not exist'}), 404
             
-          # default params
-          order_date = datetime.now() 
-          payment_status = "Paid" # assume all customers have a "Paid" status for now, for simplicity.
+          # default params 
+          # Payment Status: SUCCESS, FAILED
+          payment_status = None
+          
+          order_date = datetime.now()
+          
           created_date = datetime.now()
           modified_date = None
+          
+          # Order statuses: PENDING, PAID 
+          order_status = "PENDING"
             
           # create cursor object
           cursor = conn.cursor()
+          
+          
             
           try:
-              sql_customer_id_insert_query = "INSERT INTO order_record VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-              cursor.execute(sql_customer_id_insert_query, (customer_id, order_date, subtotal, shipping_fee, total_amount, payment_status, created_date, modified_date))
+              sql_customer_id_insert_query = "INSERT INTO order_record VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+              cursor.execute(sql_customer_id_insert_query, (customer_id, order_date, subtotal, shipping_fee, total_amount, payment_status, created_date, modified_date, order_status))
               conn.commit()
               
               # return the order id of the purchase
@@ -496,7 +505,7 @@ class MyWebService:
                 
               return order_id
             
-          except Exception as e: 
+          except Exception as e:
               # close SQL cursor & connection
               self.close_sql(cursor)
                 
@@ -581,6 +590,56 @@ class MyWebService:
                 error_message = "There was an issue adding payment info: " + str(e)
                 return {'error': error_message}, 500
   
+  def get_order_status(self, order_id):
+      with pyodbc.connect(self.conn_str) as conn:
+          # create cursor object
+          cursor = conn.cursor()
+          
+          sql_get_status_query = "SELECT order_status FROM order_record WHERE pk_order_id = ?"
+          cursor.execute(sql_get_status_query, (order_id))
+          
+          # fetch the row tuple
+          result = cursor.fetchone()
+           
+          # get order status
+          order_status = result[0]
+          
+          # is order status a string?
+          if isinstance(order_status, str):
+              return str(order_status)
+          else:
+              return jsonify({'error': 'Customer\'s id does not exist'}), 404
+          
+  def set_order_status(self, order_status, order_id):
+        with pyodbc.connect(self.conn_str) as conn:
+            # create cursor object
+            cursor = conn.cursor()
+            
+            try:
+                sql_modify_status = "UPDATE order_record SET order_status = ? WHERE pk_order_id = ?"
+                cursor.execute(sql_modify_status, (order_status, order_id))
+                conn.commit()
+                
+                return {'message': 'Order status is set successfully'}, 200
+            except Exception as e:
+                error_message = "There was an issue in setting order status: " + str(e)
+                return {'error': error_message}, 500
+            
+  def set_payment_status(self, payment_status, order_id):
+      with pyodbc.connect(self.conn_str) as conn:
+            # create cursor object
+            cursor = conn.cursor()
+            
+            try:
+                sql_modify_status = "UPDATE order_record SET payment_status = ? WHERE pk_order_id = ?"
+                cursor.execute(sql_modify_status, (payment_status, order_id))
+                conn.commit()
+                
+                return {'message': 'Payment status is set successfully'}, 200
+            except Exception as e:
+                error_message = "There was an issue in setting payment status: " + str(e)
+                return {'error': error_message}, 500
+          
   def get_payment_info(self, order_id):
       with pyodbc.connect(self.conn_str) as conn:
         # create cursor object

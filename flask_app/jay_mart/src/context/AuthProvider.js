@@ -1,4 +1,6 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useState } from "react";
+import useCart from "../hooks/useCart";
+import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext({});
 
@@ -8,30 +10,42 @@ export const AuthProvider = ({ children }) => {
 
     // Initialize `isLoggedIn` state based on whether there is a `token` or not.
     const [isLoggedIn, setIsLoggedIn] = useState(!!token);
+
+    const {selectedItems, onItemSelect} = useCart();
+
+     const navigate = useNavigate();
     
-    // useEffect runs every time the `token` changes.
-    useEffect(() => {
-        if (token) {
-            // If there's a `token`, store it in localStorage and set `isLoggedIn` to true.
-            localStorage.setItem('token', JSON.stringify(token));
-            setIsLoggedIn(true);
-
-        } else {
-             // If `token` is null, remove it from localStorage and set `isLoggedIn` to false.
-            localStorage.removeItem('token');
-            setIsLoggedIn(false)
-        }
-    }, [token]); // Dependency array with `token` ensures this runs when `token` changes.
-
-
-     // `login` function updates the `token` state with a new token.
+    // `login` function updates the `token` state with a new token.
     const login = (newToken) => {
-        setToken(newToken);
+        // store access token
+        localStorage.setItem('token', JSON.stringify(newToken));
+
+        // update state
+        setToken(token)
+        setIsLoggedIn(true);
     };
 
      // `logout` function sets `token` to null, triggering `useEffect` cleanup of localStorage.
     const logout = () => {
-        setToken(null);
+        
+        // loop through selected items
+        selectedItems.forEach(item => {
+        // for each item in eselected items, deselect item
+        onItemSelect(item)
+        
+        });
+      
+        // remove token from storage
+        localStorage.removeItem('token');
+
+        // update state
+        setToken(token)
+        setIsLoggedIn(false)
+
+        // navigate to home page
+        navigate('/')
+
+        
     };
     
     // Provide `token`, `isLoggedIn`, `login`, and `logout` to all child components

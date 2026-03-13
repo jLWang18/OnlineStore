@@ -57,6 +57,9 @@ cors = CORS(app, resources={
     },
      r"/api/getPayment/*": {
          "origins": ["http://localhost:3000"]
+     },
+     r"/api/getOrderStatus/*": {
+         "origins": ["http://localhost:3000"]
      }
     
 }, supports_credentials= True)
@@ -231,9 +234,9 @@ def addOrder_ui():
     subtotal = data["subtotal"]
     shipping_fee = data["shipping_fee"]
     total_amount = data["total_amount"]
-    
     # instatiate web service
     webservice = mywebservice.MyWebService()
+    
     
     # return the order id of the purchase
     response = webservice.add_customer_order(customer_id, subtotal, shipping_fee, total_amount)
@@ -260,8 +263,18 @@ def addOrderItem_ui():
 def addPayment_ui():
     # get input from input parameter
     data = request.get_json()
-    customer_id = data["customer_id"]
     order_id = data["order_id"]
+    
+    # instantiate web service
+    swaggerservice = mywebservice.MyWebService()
+    
+    # get the order_status. If order_status is PAID, don't add order to payment
+    if swaggerservice.get_order_status(order_id) == "PAID":
+        return jsonify({'message': 'An order already paid', 'order_id': order_id}), 200
+    
+    
+    customer_id = data["customer_id"]
+    
     total_price = data["total_price"]
     
     last_4_digits = data["last_4_digits"]
@@ -270,12 +283,23 @@ def addPayment_ui():
     # payment token must be randomly generated
     payment_token = generate_test_token()
     
-    # instantiate web service
-    swaggerservice = mywebservice.MyWebService()
     
     result, status = swaggerservice.add_customer_payment_ui(customer_id, order_id, total_price, payment_token, last_4_digits, card_type)
+    if status == 200:
+        # mark order status as PAID
+        swaggerservice.set_order_status("PAID", order_id)
+        
     return jsonify(result), status
+    
 
+# define Flask API route for React UI to get order status of the particular order_id
+@app.route('/api/getOrderStatus/<int:order_id>', methods=['GET'])
+def get_order_status(order_id):
+    webservice = mywebservice.MyWebService()
+    
+    response = webservice.get_order_status(order_id)
+    return response
+    
 # define Flask API route for React UI to get payment info (cardType and last4 digits)
 @app.route('/api/getPayment/<int:order_id>', methods=['GET'])
 def getPayment_ui(order_id):
@@ -556,6 +580,7 @@ def generate_test_token():
 # define Flask API routes for SwaggerUI to add customer's payment info
 @app.route("/api/customer-info/addPayment", methods=['POST'])
 def addPayment():
+    
     # get input from query parameter
     customer_id = request.args.get("customer_id")
     order_id = request.args.get("order_id")
@@ -570,8 +595,8 @@ def addPayment():
     # instantiate swagger service
     swaggerservice = myswaggerservice.MySwaggerService()
     
-    
     result, status = swaggerservice.add_customer_payment(customer_id, order_id, total_price, payment_token, last_4_digits, card_type)
+    
     return jsonify(result), status
     
 # define Flask API route for Swagger UI to get payment info (cardType and last4 digits)

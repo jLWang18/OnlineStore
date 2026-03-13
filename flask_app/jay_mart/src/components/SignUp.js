@@ -43,6 +43,14 @@ const SignUp = () => {
       navigate(from, {replace: true})
       setVerified(true)
 
+      // after submission, clear all the fields
+      setFormErrors("")
+      setFirstName("")
+      setLastName("")
+      setEmail("")
+      setPwd("")
+      setPhone("")
+
     }).catch(err => {
       if (!err?.response) {
         alert("No server response");
@@ -51,13 +59,6 @@ const SignUp = () => {
       } else if (err.response?.status === 500) {
         alert("There was an issue adding new customer");
       }
-      // after alert, should clear all the fields
-      setFormErrors("")
-      setFirstName("")
-      setLastName("")
-      setEmail("")
-      setPwd("")
-      setPhone("")
     })
   }
   useEffect(() => {
@@ -112,7 +113,7 @@ const SignUp = () => {
   async function addCustomer(fname, lname, email, pwd, phone) {
     try {
       // insert new customer to the database
-      const response = await axios.post(SIGNUP_URL,
+      await axios.post(SIGNUP_URL,
         JSON.stringify({first_name: fname, last_name: lname, email: email,
           password: pwd, phone_number: phone}), 
           {
@@ -120,28 +121,13 @@ const SignUp = () => {
             withCredentials: true
 
          })
-      // if new customer is added to the database successfully, return true
-      if (response.status >= 200 && response.status < 300) {
         return true
 
-      } else {
-        // if not successful, jump to the catch block
-        throw new Error(`Unexpected status code: ${response.status}`)
-      }
     } catch(err) {
-      // Handle axios error
-      if (err.response) {
-        // Handle error response from the server
-        throw new AxiosError("Request failed", {
-          status: err.response.status,
-          data: err.response.data
-        })
-      } else {
-        throw new Error('No response from server');
-      }
-    }
+      throw err
     
   }
+}
 
     return (
     <div>
@@ -183,5 +169,4 @@ const SignUp = () => {
    </div>
     )
   }
-
   export default SignUp

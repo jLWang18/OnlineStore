@@ -28,15 +28,19 @@ export const fetchCustomerProfile = async() => {
     return customer
 
   } catch(err) {
-    // if (!err?.response) {
-    //   alert('No Server Response Navbar');
-    // } else if (err.response?.status === 401) {
-    //   alert('Authorization token is missing');
-    // } else {
-    //   alert("There was an issue in getting customer id");
-    // }
-      const errorMsg = err.response?.data?.error || 'An unexpected error occurred';
-      alert(errorMsg); // No need to rewrite the message here
+     // Server responded with error (404, 401, 500)
+        if (err.response) {
+            console.error("Server Error here")
+            throw {
+                status: err.response.status,
+                message: err.response.data?.error || "Server error",
+            };
+        }
+        // Network / CORS / Server down
+        throw {
+            status: 0,
+            message: "Unable to reach server",
+        };
 
     }
     
