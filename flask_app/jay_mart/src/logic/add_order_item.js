@@ -25,16 +25,19 @@ export async function addOrderItem(order_id, product_id, unit_price, quantity) {
         }
 
     } catch (err) {
-        // Handle axios error
+         // Server responded with error (404, 401, 500)
         if (err.response) {
-            // Handle error response from the server
-            throw new AxiosError("Request failed", {
+            console.error("Server Error here")
+            throw {
                 status: err.response.status,
-                data: err.response.data
-            })
-        } else {
-            throw new Error('No response from server');
+                message: err.response.data?.error || "Server error",
+            };
         }
+        // Network / CORS / Server down
+        throw {
+            status: 0,
+            message: "Unable to reach server",
+        };
     }
     
 }

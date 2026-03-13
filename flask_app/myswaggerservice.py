@@ -334,6 +334,17 @@ class MySwaggerService:
                 error_message = "There was an issue adding payment info: " + str(e)
                 return {'error': error_message}, 500
     
+    def set_order_status(self, order_status, order_id):
+        with pyodbc.connect(self.conn_str) as conn:
+            # create cursor object
+            cursor = conn.cursor()
+            
+            sql_modify_status = "UPDATE order_record SET order_status = ? WHERE fk_shopper_id = ?"
+            cursor.execute(sql_modify_status, (order_status, order_id))
+            conn.commit()
+            
+            return 200
+        
     def get_payment_info(self, order_id):
       with pyodbc.connect(self.conn_str) as conn:
         # create cursor object

@@ -43,7 +43,7 @@ table {
 }
 
 tr {
-  background-color:  rgb(247, 239, 239);
+  background-color: rgb(247, 239, 239);
   box-align: center;
 }
 
@@ -54,17 +54,18 @@ tr {
 }
 
 .error-message {
-  color: red
+  color: red;
 }
 
 /**Custom CSS Style for navBar feat/authentication-route-api branch **/
 * {
   box-sizing: border-box;
-} 
+}
 
 body {
   margin: 0;
 }
+
 .nav {
   background-color: #333;
   color: white;
@@ -74,8 +75,8 @@ body {
   gap: 2rem;
   padding: 0 1rem;
   height: 60px;
-
 }
+
 .site-title {
   font-size: 2rem;
 }
@@ -113,71 +114,62 @@ body {
 }
 
 .input-control {
-  margin-top: 20px;
-  margin-bottom: 10px;
-  margin-left: 20px;
-
+  margin: 20px 0 10px 20px;
 }
 
-.input-control-email {
+.input-control-email,
+.input-control-password,
+.input-control-names-signup,
+.input-control-email-signup,
+.input-control-password-signup,
+.input-control-phone-signup {
   margin-bottom: 10px;
 }
-.input-control-email > label {  
+
+.input-control-email > label {
   margin-right: 46px;
 }
 
-.input-control-password {
-  margin-bottom: 10px;
-}
 .input-control-password > label {
   margin-right: 20px;
 }
 
-
-.input-control-names-signup {
-  margin-bottom: 10px;
-}
-
-.input-control-names-signup > label {  
+.input-control-names-signup > label {
   margin-right: 21px;
 }
 
-.input-control-email-signup {
-  margin-bottom: 10px;
-}
-.input-control-email-signup > label {  
+.input-control-email-signup > label {
   margin-right: 58px;
 }
 
-.input-control-password-signup {
-  margin-bottom: 10px;
-}
 .input-control-password-signup > label {
   margin-right: 30px;
 }
 
-.input-control-phone-signup {
-  margin-bottom: 10px;
-}
 .input-control-phone-signup > label {
   margin-right: 50px;
 }
 
 .button {
-  padding-right: 10px;
-  padding-left: 10px;
-  padding-top: 5px;
-  padding-bottom: 5px;
+  padding: 5px 10px;
 }
 
 .display-container {
-  margin-top: 20px;
-  margin-bottom: 10px;
-  margin-left: 20px;
+  margin: 20px 0 10px 20px;
   display: inline-block;
   position: relative;
 }
 
 .display-table {
   margin-bottom: 20px;
+}
+
+.confirmation {
+  margin: 20px 0 10px 20px;
+  display: inline-block;
+  position: relative;
+}
+
+.payment-button {
+  margin-top: 20px;
 }

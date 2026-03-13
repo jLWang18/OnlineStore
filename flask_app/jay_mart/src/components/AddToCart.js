@@ -3,16 +3,41 @@ import  useCart  from '../hooks/useCart.js';
 import '../styles/styles.css';
 import useCheckout from '../hooks/useCheckout.js';
 import { useEffect } from 'react';
+import { addOrderRecord } from '../logic/add_order_record.js';
+import { addOrderItem } from '../logic/add_order_item.js';
+import useCustomer from '../hooks/useCustomer.js';
 
 const SHIPPING_COST = 5
 
 export default function AddToCart() {
     const navigate = useNavigate();
 
-    const { selectedItems } = useCart();
+    const {selectedItems} = useCart();
 
     
     const {subtotal, setSubtotal, shippingFee, setShippingFee, totalAmount, setTotalAmount} = useCheckout();
+
+    const {customerId} = useCustomer();
+
+    const addOrder = async () => {
+        // add customer's id, subtotal, shippingFee, and total price to the order_record table
+        const orderId = await addOrderRecord(customerId, subtotal, shippingFee, totalAmount)
+        
+        // loop over selectedItem
+        for (let i = 0; i < selectedItems.length; i++) {
+            // add each selected product to the order_item table
+            const product_id = selectedItems[i].product_id
+            const unit_price = selectedItems[i].product_price
+            const quantity = selectedItems[i].in_stock_quantity
+        
+            await addOrderItem(orderId, product_id, unit_price, quantity)
+        }
+
+        // navigate to payment page
+        navigate(`/payment/${orderId}`)
+
+        
+    }
 
     useEffect(() => {
         // calculate subtotal (without shipping cost) and totalAmount (with shipping cost) 
@@ -34,7 +59,7 @@ export default function AddToCart() {
 
         itemsTotalPrice(selectedItems);
 
-    }, [selectedItems, setSubtotal, setTotalAmount])
+    }, [selectedItems, setSubtotal, setShippingFee, setTotalAmount])
       
 
     return (
@@ -71,7 +96,7 @@ export default function AddToCart() {
         <label><h4>subtotal: ${totalAmount}</h4></label>
 
         <div class="options">
-            <button class="button" onClick={() => navigate("/payment")}>Proceed to Payment</button>
+            <button class="button" onClick={() => addOrder()}>Proceed to Payment</button>
             <button class="button" onClick={() => navigate("/")}>Cancel</button>
         </div>
         </div>

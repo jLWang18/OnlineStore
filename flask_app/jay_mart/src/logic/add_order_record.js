@@ -1,5 +1,4 @@
 import axios from "../api/axios";
-import AxiosError from '../utils/AxiosError.js'
 
 const ORDER_RECORD_URL = "http://localhost:5000/api/addOrderRecord"
 
@@ -17,26 +16,21 @@ export async function addOrderRecord (customer_id, subtotal, shipping_fee, total
         const order_id = response.data
 
         return order_id
-        
-        // // if order record is added to the database successfully, return true
-        // if (response.status >= 200 && response.status < 300) {
-        //     return true
-        // } else {
-        //     // if not successful, jump to the catch block
-        //     throw new Error(`Unexpected status code: ${response.status}`)
-        // }
     
     } catch(err) {
-        // Handle axios error
+         // Server responded with error (404, 401, 500)
         if (err.response) {
-            // Handle error response from the server
-            throw new AxiosError("Request failed", {
+            console.error("Server Error here")
+            throw {
                 status: err.response.status,
-                data: err.response.data
-            })
-        } else {
-            throw new Error('No response from server');
+                message: err.response.data?.error || "Server error",
+            };
         }
+        // Network / CORS / Server down
+        throw {
+            status: 0,
+            message: "Unable to reach server",
+        };
 
     }
     

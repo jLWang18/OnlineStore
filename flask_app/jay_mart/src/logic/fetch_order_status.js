@@ -1,18 +1,20 @@
 import axios from "../api/axios";
 
-export const fetchCustomerPayment = async(order_id) => {
+
+export const fetchOrderStatus = async(order_id) => {
     if (!order_id) {
         throw new Error("Order ID is required.")
     }
+
     try {
-        const response = await axios.get(`http://localhost:5000/api/getPayment/${order_id}`)
+        const response = await axios.get(`http://localhost:5000/api/getOrderStatus/${order_id}`)
 
-        const payment = response.data
+        const status = response.data
 
-        return payment
-        
-    } catch(err) {
-       // Server responded with error (404, 401, 500)
+        return status
+
+    } catch (err) {
+        // Server responded with error (404, 401, 500)
         if (err.response) {
             console.error("Server Error here")
             throw {
@@ -26,5 +28,4 @@ export const fetchCustomerPayment = async(order_id) => {
             message: "Unable to reach server",
         };
     }
-    
 }

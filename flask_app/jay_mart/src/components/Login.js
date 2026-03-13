@@ -5,7 +5,8 @@ import useAuth from '../hooks/useAuth.js';
 import axios from '../api/axios.js';
 import AxiosError from '../utils/AxiosError.js'
 import '../styles/styles.css';
-
+import { fetchCustomerId } from '../logic/fetch_customer_id.js';
+import useCustomer from '../hooks/useCustomer.js';
 
 const LOGIN_URL = "http://localhost:5000/api/login"
 
@@ -24,10 +25,12 @@ const Login = () => {
    
     // Handle errors initially empty
     const [formErrors, setFormErrors] = useState({});
+
+    const {setCustomerId} = useCustomer();
   
     
   
-    const handleSubmit =  (e) => {
+    const handleSubmit =  async (e) => {
       e.preventDefault();
       // validate email & password. 
       // if the form is validated, then proceed to authentication. If not, just return
@@ -37,15 +40,31 @@ const Login = () => {
         return;
       }
 
-      // else if input is valid, move on to verification
-      verify(email, pwd)
-      .then(accessToken => {
-        // upon successful login, set the accessToken and redirect user to the desired page
-        login(accessToken);
-        navigate(from, {replace: true})
+      try {
+        // 1. verify credentials
+        const accessToken = await verify(email, pwd)
+        if (!accessToken) throw new Error("login failed")
+        
+        // 2. store token / update auth state
+        login(accessToken)
+ 
+        // 3. fetch and set customer's id 
+        const customerId = await fetchCustomerId()
+        setCustomerId(customerId)
+
+        // 4. mark verified
         setVerified(true)
 
-      }).catch(err => {
+        // 5. navigate to the desired page
+        navigate(from, {replace: true})
+
+        // 6. clear form after success
+        setFormErrors("")
+        setEmail("")
+        setPwd("")
+       
+        
+      } catch (err) {
         if (!err?.response) {
           alert('No Server Response');
         } else if (err.response?.status === 400) {
@@ -53,14 +72,9 @@ const Login = () => {
         } else if (err.response?.status === 401) {
           alert("Unauthorized: Either email or password is not valid");
         }
-         // after alert, should clear all the fields
-         setFormErrors("")
-         setEmail("")
-         setPwd("")
-
-      })
+      }
     }
-    
+
     const validate = (email, pwd) => {
       const errors = {};
   
@@ -97,27 +111,11 @@ const Login = () => {
           }
         );
         
-        // if email and password is verified, then set access token
-        if (response.status >=200 && response.status < 300) {
-          const accessToken = response.data;
-          return accessToken
-
-        } else {
-          // if email and password is not verified, it will jump to the catch block
-          throw new Error(`Unexpected status code: ${response.status}`)
-       }
+        const accessToken = response.data;
+        return accessToken
 
       } catch(err) {
-        // Handle axios error
-        if (err.response) {
-          // Handle error response from the server
-          throw new AxiosError("Request failed", {
-            status: err.response.status,
-            data: err.response.data
-          })
-        } else {
-          throw new Error('No response from server');
-        }
+        throw err
      }
   
     }

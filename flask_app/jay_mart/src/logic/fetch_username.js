@@ -28,12 +28,18 @@ export const fetchUserName = async(setUsername) => {
         setUsername(userData.data)
 
     } catch (err) {
-        if (!err?.response) {
-            alert('No Server Response Navbar');
-          } else if (err.response?.status === 401) {
-            alert('Authorization token is missing');
-          } else {
-            alert("There was an issue in getting username");
-          }
+         // Server responded with error (404, 401, 500)
+        if (err.response) {
+            console.error("Server Error here")
+            throw {
+                status: err.response.status,
+                message: err.response.data?.error || "Server error",
+            };
+        }
+        // Network / CORS / Server down
+        throw {
+            status: 0,
+            message: "Unable to reach server",
+        };
     }
 }
