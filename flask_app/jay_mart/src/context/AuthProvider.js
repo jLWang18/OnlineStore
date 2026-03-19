@@ -39,11 +39,11 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('token');
 
         // update state
-        setToken(token)
+        setToken(null);
         setIsLoggedIn(false)
 
         // navigate to home page
-        navigate('/')
+        navigate('/'); 
 
         
     };

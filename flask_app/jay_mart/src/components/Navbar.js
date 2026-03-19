@@ -10,6 +10,10 @@ export default function Navbar() {
     const [username, setUsername] = useState("");
     const {setCustomerId} = useCustomer();
 
+    const handleLogout = (e) => {
+        e.preventDefault();
+        logout();
+    }
     useEffect(() => {
         // upon login, fetch and set username and get customerId
         const fetchData = async () => {
@@ -38,7 +42,7 @@ export default function Navbar() {
                   </li>
                    
                   <li>
-                     <Link onClick={logout}>Log out</Link>
+                     <Link to ="/" onClick={handleLogout}>Log out</Link>
                   </li>
                 </>
                 ) : (
