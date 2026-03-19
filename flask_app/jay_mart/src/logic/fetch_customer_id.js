@@ -6,8 +6,6 @@ export const fetchCustomerId = async() => {
   // get access token
   const token = localStorage.getItem("token");
 
-  console.log("fetching customer id with token: ", token)
-
   try {
     const response = await axios.get(PROFILE_URL,
       {
