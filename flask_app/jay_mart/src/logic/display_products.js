@@ -83,33 +83,5 @@ export function displayCart(selectedItems) {
     console.log(selectedItems[i])
 
   }
-  // // reference the table
-  // let grid = document.getElementById("product-table");
-
-  // // refrence the checkboxes
-  // let checkBoxes = grid.getElementsByTagName("input");
-
-  // // display data in the table
-  // let placeholder = document.querySelector("#data-output");
-  // let out = "";
-
-  // // loop through the checkboxes
-  // for (let i = 0; i < checkBoxes.length; i++) {
-  //   if (checkBoxes[i].checked) {
-  //     // select table row element
-  //     let row = checkBoxes[i].parentNode.parentNode;
-  //     console.log(row.cells[1].innerHTML)
-
-  //     out += `
-  //        <tr> 
-  //         <td>${row.cells[1].innerHTML}</td>
-  //         <td>${row.cells[2].innerHTML}</td>
-  //         <td>${row.cells[3].innerHTML}</td>
-  //         <td>$${row.cells[4].innerHTML}</td>
-  //         <td>${row.cells[5].innerHTML}</td>
-  //        </tr>`;
-  //   }
-  // }
-
-  // placeholder.innerHTML = out;
+ 
 }
