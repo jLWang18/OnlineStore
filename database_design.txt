@@ -60,9 +60,13 @@ Purpose: This table tracks customer payments
 Fields:
     - payment id (PK)
     - customer id (FK)
+    - order id (FK)
     - invoice date (FK)
-    - payment date
-    - payment amount
+    - total price
+    - payment status
+    - payment token
+    - last 4 digits
+    - card type
     - created date
     - modified date
 
