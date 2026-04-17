@@ -444,23 +444,10 @@ class MyWebService:
                shopper_id = result[0]
                
                if isinstance(shopper_id, int):
-                   
-                   try:
-                        sql_get_customer_data = "SELECT first_name FROM shopper WHERE pk_shopper_id = ?"
-                        cursor.execute(sql_get_customer_data, (shopper_id,))
-                    
-                        # get customer's first name
-                        result = cursor.fetchone()
-                        
-                        if result is not None:
-                            
-                            return jsonify({'data': result[0]}), 200
-                        else:
-                            return jsonify({'error': 'Customer not found'}), 404
-                    
-                   except Exception as e:
-                        error_message = "There was an issue in getting username " + str(e)
-                        return jsonify({'error': error_message}), 500
+                   # get the customer detail by shopper id
+                   customer_detail = self.get_customer_detail(conn, cursor, shopper_id)
+                   # return customer's first name
+                   return customer_detail['first_name']
                else:
                   return jsonify({"error": "Shopper ID is not valid"}), 400 
                

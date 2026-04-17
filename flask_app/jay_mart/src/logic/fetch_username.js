@@ -25,7 +25,7 @@ export const fetchUserName = async(setUsername) => {
         // get the username
         const userData = response.data
         // set the username
-        setUsername(userData.data)
+        setUsername(userData)
 
     } catch (err) {
          // Server responded with error (404, 401, 500)

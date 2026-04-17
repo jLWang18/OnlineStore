@@ -1,9 +1,8 @@
-from flask import Flask, jsonify, render_template, request, redirect, url_for, session, make_response
-from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity, create_refresh_token, set_access_cookies
+from flask import Flask, jsonify, request
+from flask_jwt_extended import JWTManager, create_access_token
 from flask_swagger_ui import get_swaggerui_blueprint
-from datetime import datetime, timedelta
+from datetime import timedelta
 from flask_cors import CORS
-import pyodbc
 import uuid
 import mywebservice
 import myswaggerservice
