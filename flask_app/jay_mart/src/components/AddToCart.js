@@ -7,7 +7,7 @@ import { addOrderRecord } from '../logic/add_order_record.js';
 import { addOrderItem } from '../logic/add_order_item.js';
 import useCustomer from '../hooks/useCustomer.js';
 
-const SHIPPING_COST = 5
+const SHIPPING_COST = 4.99
 
 export default function AddToCart() {
     const navigate = useNavigate();
@@ -64,7 +64,7 @@ export default function AddToCart() {
 
     return (
         <>
-        <div class="display-container">
+        <div className="display-container">
             <h1>Your Cart Items</h1>
             <table id="cart-table">
             <thead>
@@ -95,9 +95,9 @@ export default function AddToCart() {
         <label><h4>shipping: ${shippingFee}</h4></label>
         <label><h4>subtotal: ${totalAmount}</h4></label>
 
-        <div class="options">
-            <button class="button" onClick={() => addOrder()}>Proceed to Payment</button>
-            <button class="button" onClick={() => navigate("/")}>Cancel</button>
+        <div className="options">
+            <button className="button" onClick={() => addOrder()}>Proceed to Payment</button>
+            <button className="button" onClick={() => navigate("/")}>Cancel</button>
         </div>
         </div>
       </>

@@ -403,6 +403,90 @@
 
         }
       }
+    },
+    "/api/customer-info/getAllOrders/{shopper_id}": {
+      "get":{
+        "description": "display all orders given the customer id",
+        "operationId": "getAllOrders",
+        "parameters": [
+          {
+            "name": "shopper_id",
+            "in":"path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses":{
+          "200":{
+            "description": "all orders retrived successfully",
+            "content":{
+              "application/json":{
+                "schema":{
+                  "$ref":"#/components/schemas/customer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customer-info/getOrder/{order_id}": {
+      "get": {
+        "description": "get an order of a customer given the order id",
+        "operationId": "getOrder",
+        "parameters": [
+          {
+            "name":"order_id",
+            "in":"path",
+            "required": true,
+            "schema":{
+              "type":"integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "An order is retrieved successfully",
+            "content" : {
+              "application/json": {
+                "schema": {
+                  "$ref":"#/components/schemas/orderRecord"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/customer-info/getAllOrderItems/{order_id}": {
+      "get":{
+        "description": "get all order items of a customer given the order id",
+        "operationId": "getAllOrderItems",
+        "parameters":[
+          {
+            "name":"order_id",
+            "in":"path",
+            "required": true,
+            "schema":{
+              "type":"integer"
+            }
+          }
+        ],
+         "responses": {
+          "200": {
+            "description": "All order items is retrieved successfully",
+            "content" : {
+              "application/json": {
+                "schema": {
+                  "$ref":"#/components/schemas/orderItem"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

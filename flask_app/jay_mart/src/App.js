@@ -7,6 +7,8 @@ import AddToCart from './components/AddToCart.js';
 import Payment from './components/Payment.js';
 import RequireAuth from './components/RequireAuth.js';
 import Confirmation from './components/Confirmation.js';
+import Profile from './components/Profile.js';
+import OrderSummary from './components/OrderSummary.js';
 
 
 
@@ -25,6 +27,8 @@ export function App() {
               <Route path="/addtocart" element={<AddToCart />}/>
               <Route path="/payment/:orderId" element={<Payment />}/>
               <Route path="/confirmation/:orderId" element={<Confirmation />}/>
+              <Route path="/profile/:customerId" element ={<Profile />}/>
+              <Route path ="/profile/:customerId/orderSummary/:orderId" element={<OrderSummary/>}/>
             </Route>
         </Routes>
       </div>

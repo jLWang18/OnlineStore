@@ -2,7 +2,6 @@ import { useState, useEffect} from 'react'
 import { validateFirstName, validateLastName, validateEmail, validatePassword, validatePhone } from '../logic/handle_inputs.js';
 import { useNavigate, useLocation} from "react-router-dom";
 import axios from '../api/axios.js';
-import AxiosError from '../utils/AxiosError.js';
 import '../styles/styles.css';
 
 
@@ -132,38 +131,38 @@ const SignUp = () => {
     return (
     <div>
       <form onSubmit={handleSubmit}>
-        <div class="input-control">
-            <div class ="input-control-names-signup">
+        <div className="input-control">
+            <div className ="input-control-names-signup">
               {formErrors.fname && <p className="error-message">{formErrors.fname}</p>}
             <label htmlFor="fname">First Name</label>
             <input type="text" id="fname" name="fname" autoComplete="off" 
                   onChange={(e) => setFirstName(e.target.value)} value={fname} required/>
           </div>
-          <div class = "input-control-names-signup">
+          <div className = "input-control-names-signup">
             {formErrors.lname && <p className="error-message">{formErrors.lname}</p>}
             <label htmlFor="lname">Last Name</label>
             <input type="text" id="lname" name="lname" autoComplete="off" 
                   onChange={(e) => setLastName(e.target.value)} value={lname} required/>
           </div>
-          <div class = "input-control-email-signup">
+          <div className = "input-control-email-signup">
             {formErrors.email && <p className="error-message">{formErrors.email}</p>}
             <label htmlFor="email">Email</label>
             <input type="text" id="email" name="email" autoComplete="off" 
                   onChange={(e) => setEmail(e.target.value)} value={email} required/>
           </div>
-          <div class = "input-control-password-signup">
+          <div className = "input-control-password-signup">
             {formErrors.password && <p className="error-message">{formErrors.password}</p>}
             <label htmlFor="password">Password</label>
             <input type="password" id="password" name="password" autoComplete="off" 
                   onChange={(e) => setPwd(e.target.value)} value={pwd} required/>
           </div>
-          <div class = "input-control-phone-signup">
+          <div className = "input-control-phone-signup">
             {formErrors.phone && <p className="error-message">{formErrors.phone}</p>}
             <label htmlFor="phone">Phone</label>
             <input type="text" id="phone" name="phone" autoComplete="off" 
                   onChange={(e) => setPhone(e.target.value)} value={phone}  required/>
           </div>
-          <button class="button" type="submit">Sign up</button>
+          <button className="button" type="submit">Sign up</button>
       </div>
     </form>
    </div>
