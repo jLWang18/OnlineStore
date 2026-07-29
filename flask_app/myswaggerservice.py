@@ -390,4 +390,111 @@ class MySwaggerService:
             else:
                 return jsonify({'error': "Invalid order id"}), 404       
     
-   
+    def get_all_orders(self, shopper_id):
+        with pyodbc.connect(self.conn_str) as conn:
+            # create cursor object
+            cursor = conn.cursor()
+            
+            if self.is_customer_id_exist(shopper_id, conn):
+                try:
+                    # get all orders of a customer
+                    sql_get_all_orders = "SELECT pk_order_id, created_date, order_status, total_amount FROM order_record WHERE fk_shopper_id = ?"
+                    cursor.execute(sql_get_all_orders, shopper_id)
+                    
+                    rows = cursor.fetchall()
+                    orders = []
+                    
+                    # iterate through rows of orders
+                    for row in rows:
+                        order = {
+                            'order_id': row.pk_order_id,
+                            'order_date': row.created_date,
+                            'order_status': row.order_status,
+                            'order_total': row.total_amount
+                        }
+                        orders.append(order)
+                    conn.commit()
+                    
+                    # return all orders
+                    return jsonify({'message': "All orders displayed successfully", 'data': orders}), 200
+                except Exception as e:
+                    error_message = "There was an issue displaying orders " + str(e)
+                    return jsonify({'error': error_message}), 500
+            else:
+                return jsonify({'error': "shopper id does not exist"}), 404
+    
+    def get_order(self, order_id):
+        with pyodbc.connect(self.conn_str) as conn:
+            # create cursor object
+            cursor = conn.cursor()
+            
+            # if order_id exist
+            if (self.is_order_id_exist(order_id, conn)):
+                try:
+                    # fetch order baded on the given order_id
+                    sql_get_order = "SELECT created_date, pk_order_id FROM order_record WHERE pk_order_id = ?"                       
+                    cursor.execute(sql_get_order, order_id)
+                
+                    # get the order
+                    data = cursor.fetchone()
+                    
+                    order_detail = {
+                        'order_date': data.created_date,
+                        'order_number': data.pk_order_id
+                    }
+                    return jsonify({'message': "An order is displayed successfully", 'data': order_detail}), 200
+                
+                except Exception as e:
+                    error_message = "There was an issue displaying an order " + str(e)
+                    return jsonify({'error': error_message}),  500
+            else:
+                return jsonify({'error': "order_id is not exist"}), 400
+    
+    def get_all_order_items(self, order_id):
+        with pyodbc.connect(self.conn_str) as conn:
+            # create curstor object
+            cursor = conn.cursor()
+            
+            # if order_id exist
+            if (self.is_order_id_exist(order_id, conn)):
+                try:
+                    # fetch all orders purchased by the customer
+                    sql_get_all_orders = """
+                    SELECT
+                        p.pk_product_id,
+                        p.product_category,
+                        p.product_name,
+                        p.product_price,
+                        p.in_stock_quantity
+                    FROM order_item AS oi
+                    JOIN product AS p
+                        ON oi.fk_product_id = p.pk_product_id
+                    WHERE oi.fk_order_id = ?;
+                    """
+                    cursor.execute(sql_get_all_orders, order_id)
+                    
+                    # fetch all rows from the cursor
+                    rows = cursor.fetchall()
+                    
+                    # create list to store order items
+                    items = []
+                    # iterate through rows of order items
+                    for row in rows:
+                        item = {
+                            'product_id': row.pk_product_id,   
+                            'product_category': row.product_category,
+                            'product_name': row.product_name,
+                            'product_price': row.product_price,
+                            'in_stock_quantity': row.in_stock_quantity
+                        }
+                        items.append(item)
+                        
+                    conn.commit()
+                    # return all order items
+                    return jsonify({'message': "All order items displayed sucessfully", 'data': items})
+                except Exception as e:
+                    error_message = "There was an issue displaying all products" + str(e)
+                    return jsonify({'error': error_message}), 500
+            
+            else:
+                return jsonify({'error': "order_id is not exist"}), 400        

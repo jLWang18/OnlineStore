@@ -8,7 +8,7 @@ import useCustomer from "../hooks/useCustomer.js";
 export default function Navbar() {
     const {isLoggedIn, logout} = useAuth();
     const [username, setUsername] = useState("");
-    const {setCustomerId} = useCustomer();
+    const {customerId, setCustomerId} = useCustomer();
 
     const handleLogout = (e) => {
         e.preventDefault();
@@ -40,7 +40,9 @@ export default function Navbar() {
                   <li>
                      <Link to="/login">Hi, {username}!</Link>
                   </li>
-                   
+                   <li>
+                     <Link to={`/profile/${customerId}`}>Profile</Link>
+                   </li>
                   <li>
                      <Link to ="/" onClick={handleLogout}>Log out</Link>
                   </li>

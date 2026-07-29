@@ -55,9 +55,18 @@ cors = CORS(app, resources={
         "origins": ["http://localhost:3000"]
     },
      r"/api/getPayment/*": {
-         "origins": ["http://localhost:3000"]
+        "origins": ["http://localhost:3000"]
      },
      r"/api/getOrderStatus/*": {
+        "origins": ["http://localhost:3000"]
+     },
+     r"/api/getAllOrders/*": {
+        "origins": ["http://localhost:3000"]
+     },
+     r"/api/getOrder/*": {
+        "origins": ["http://localhost:3000"]
+     },
+     r"/api/getAllOrderItems/*": {
          "origins": ["http://localhost:3000"]
      }
     
@@ -287,6 +296,8 @@ def addPayment_ui():
     if status == 200:
         # mark order status as PAID
         swaggerservice.set_order_status("PAID", order_id)
+        # mark payment status as SUCCESS
+        swaggerservice.set_payment_status("SUCCESS", order_id)
         
     return jsonify(result), status
     
@@ -397,7 +408,37 @@ def signup():
         # add all inputs to the database
         message = webservice.add_customer(first_name, last_name, email, password, phone_number)
         return message
+
+# define Flask API route for React UI to get all customer order
+@app.route("/api/getAllOrders/<int:shopper_id>", methods=["GET"])
+def getAllOrders_ui(shopper_id):
+    # instantiate swagger service
+    webservice = mywebservice.MyWebService()
     
+    # get all orders of a customer
+    response = webservice.get_all_orders_ui(shopper_id)
+    return response
+
+# define Flask API route for React UI to get an order of a customer
+@app.route("/api/getOrder/<int:order_id>", methods=["GET"])
+def getOrder_ui(order_id):
+    # instantiate web service
+    webservice = mywebservice.MyWebService()
+    
+    # get order of a customer
+    response = webservice.get_order_ui(order_id)
+    return response
+
+# define Flask API route for React UI to get all order items of a customer
+@app.route('/api/getAllOrderItems/<int:order_id>', methods=['GET'])
+def getAllOrderItems_ui(order_id):
+    # instantiate web service
+    webservice = mywebservice.MyWebService()
+    
+    # get all order items of a customer
+    response = webservice.get_all_order_items_ui(order_id)
+    return response 
+   
 @app.route('/api/whoami', methods=["GET"])
 def whoami():
     # get the access token
@@ -608,7 +649,36 @@ def getPayment(order_id):
     response = swaggerservice.get_payment(order_id)
     
     return response   
+
+# define Flask API route for Swagger UI to get all orders of a customer
+@app.route('/api/customer-info/getAllOrders/<int:shopper_id>', methods=['GET'])
+def getAllOrders(shopper_id):
+    # instantiate swagger service
+    swaggerservice = myswaggerservice.MySwaggerService()
     
+    # get all orders of a customer
+    response = swaggerservice.get_all_orders(shopper_id)
+    return response
+
+# define Flask API route for Swagger UI to get an order of a customer
+@app.route('/api/customer-info/getOrder/<int:order_id>', methods=['GET'])
+def getOrder(order_id):
+    # instantiate swagger service
+    swaggerservice = myswaggerservice.MySwaggerService()
+    
+    # get order of a customer
+    response = swaggerservice.get_order(order_id)
+    return response
+
+# define Flask API route for Swagger UI to get all order items of a customer
+@app.route('/api/customer-info/getAllOrderItems/<int:order_id>', methods=['GET'])
+def getAllOrderItems(order_id):
+    # instantiate swagger service
+    swaggerservice = myswaggerservice.MySwaggerService()
+    
+    # get all order items of a customer
+    response = swaggerservice.get_all_order_items(order_id)
+    return response 
 
 # start the Flask application if this script is executed directly
 if __name__== "__main__":

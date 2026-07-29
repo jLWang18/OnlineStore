@@ -42,7 +42,7 @@ function HomeHeaders() {
 export default function Home() {
     return (
       <>
-      <div class="display-container">
+      <div className="display-container">
         <HomeHeaders/>
         <ProductTable />
       </div>

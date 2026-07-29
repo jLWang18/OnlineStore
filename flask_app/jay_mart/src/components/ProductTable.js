@@ -48,7 +48,7 @@ const ProductTable = () => {
      
      return (
        <>
-      <table class="display-table" id="product-table">
+      <table className="display-table" id="product-table">
         <thead>
           <tr>
               <th>Select</th>
@@ -82,9 +82,9 @@ const ProductTable = () => {
       </table>
         
         {/* Navigte to addToCart page upon clicking*/}
-       <div class="options">
-            <button class="button" type="button" onClick={() => handleNavigate()}>Add to Cart</button>
-            <button class="button" type="reset" onClick={unSelectItems}> Unselect all</button>
+       <div className="options">
+            <button className="button" type="button" onClick={() => handleNavigate()}>Add to Cart</button>
+            <button className="button" type="reset" onClick={unSelectItems}> Unselect all</button>
        </div>
        </>
      )
