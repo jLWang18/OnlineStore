@@ -52,7 +52,11 @@ tr {
   margin-right: 20px;
   display: inline-block;
 }
+.navDiv Link {
+  margin-right: 20px;
+  display: inline-block;
+}
 
 .error-message {
-  color: red
+  color: red;
 }

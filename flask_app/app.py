@@ -407,7 +407,22 @@ def signup():
         password = bytes(password_string, 'utf-8')
         # add all inputs to the database
         message = webservice.add_customer(first_name, last_name, email, password, phone_number)
-        return message
+        
+        # if customer is added successfully, generate the access token
+        if message[1] == 200:
+            access_token = create_access_token(identity=email)
+             # get shopper id
+            shopper_id = webservice.get_shopper_id(email)
+            
+            if (shopper_id is None):
+                return jsonify({"error: there is an issue in getting shopper id"}, 500)
+            
+            # store access token in the database
+            webservice.add_token(shopper_id, access_token)
+            
+            return jsonify({"accessToken": access_token}), 200
+        else:
+            return jsonify({"error": "cannot add customer to the databse"}), 400
 
 # define Flask API route for React UI to get all customer order
 @app.route("/api/getAllOrders/<int:shopper_id>", methods=["GET"])
