@@ -1,5 +1,3 @@
-import axios from "../api/axios"
-
 function getOrderItems(order_id) {
     // promise: get all order items
     return new Promise((resolve, reject) => {

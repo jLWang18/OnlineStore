@@ -38,11 +38,8 @@ export default function Navbar() {
             {isLoggedIn ? (
                 <>
                   <li>
-                     <Link to="/login">Hi, {username}!</Link>
+                    <Link to={`/profile/${customerId}`}>Hi, {username}!</Link>
                   </li>
-                   <li>
-                     <Link to={`/profile/${customerId}`}>Profile</Link>
-                   </li>
                   <li>
                      <Link to ="/" onClick={handleLogout}>Log out</Link>
                   </li>

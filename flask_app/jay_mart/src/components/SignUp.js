@@ -3,6 +3,9 @@ import { validateFirstName, validateLastName, validateEmail, validatePassword, v
 import { useNavigate, useLocation} from "react-router-dom";
 import axios from '../api/axios.js';
 import '../styles/styles.css';
+import useAuth from '../hooks/useAuth.js';
+import { fetchCustomerId } from '../logic/fetch_customer_id.js';
+import useCustomer from '../hooks/useCustomer.js';
 
 
 const SIGNUP_URL = "http://localhost:5000/api/signup"
@@ -26,7 +29,10 @@ const SignUp = () => {
 
   const [isVerified, setVerified] = useState(null);
 
-  const handleSubmit = (e) => {
+  const{login} = useAuth()
+  const {setCustomerId} = useCustomer();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const isValid = validate(fname, lname, email, pwd, phone);
@@ -35,12 +41,23 @@ const SignUp = () => {
       return;
     }
 
-    // add new user to the database
-    addCustomer(fname, lname, email, pwd, phone)
-    .then(() => {
-      // when signup is sucessful, go to the desired page
-      navigate(from, {replace: true})
+    try {
+      // add new user to the database
+      const accessToken = await addCustomer(fname, lname, email, pwd, phone)
+      if (!accessToken) throw new Error("signup failed")
+      
+      // store token
+      login(accessToken)
+
+      // fetch and set customer's id 
+      const customerId = await fetchCustomerId()
+      setCustomerId(customerId)
+
+      // mark verified
       setVerified(true)
+
+      // navigate to the desired page
+      navigate(from, {replace: true})
 
       // after submission, clear all the fields
       setFormErrors("")
@@ -50,7 +67,7 @@ const SignUp = () => {
       setPwd("")
       setPhone("")
 
-    }).catch(err => {
+    } catch (err) {
       if (!err?.response) {
         alert("No server response");
       } else if (err.response?.status === 409) {
@@ -58,8 +75,9 @@ const SignUp = () => {
       } else if (err.response?.status === 500) {
         alert("There was an issue adding new customer");
       }
-    })
+    }
   }
+
   useEffect(() => {
     if (isVerified === null) return; // don't run anything on initial load
 
@@ -112,7 +130,7 @@ const SignUp = () => {
   async function addCustomer(fname, lname, email, pwd, phone) {
     try {
       // insert new customer to the database
-      await axios.post(SIGNUP_URL,
+      const response = await axios.post(SIGNUP_URL,
         JSON.stringify({first_name: fname, last_name: lname, email: email,
           password: pwd, phone_number: phone}), 
           {
@@ -120,7 +138,8 @@ const SignUp = () => {
             withCredentials: true
 
          })
-        return true
+        const accessToken = response.data
+        return accessToken
 
     } catch(err) {
       throw err

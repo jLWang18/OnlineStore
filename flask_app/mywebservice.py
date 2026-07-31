@@ -423,6 +423,7 @@ class MyWebService:
                shopper_id = result[0]
                return shopper_id
            else:
+              print("err")
               return jsonify({"error: there is an issue in getting shopper id"}, 500)
     
   def  get_customer_name(self, access_token):
