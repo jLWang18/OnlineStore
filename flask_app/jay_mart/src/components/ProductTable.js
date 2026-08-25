@@ -56,7 +56,7 @@ const ProductTable = () => {
               <th>Product Category</th>
               <th>Product Name</th>
               <th>Price</th>
-              <th>Quantity</th>
+              <th>Stock</th>
           </tr>
         </thead>
         <tbody>

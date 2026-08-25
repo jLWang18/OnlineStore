@@ -7,7 +7,7 @@ export async function addPayment(customer_id, order_id, total_price, last_4_digi
     try {
         // add customer's payment info to the payment database
         const response = await axios.post(PAYMENT_URL,
-            JSON.stringify({customer_id: customer_id, order_id: order_id, 
+            JSON.stringify({customer_id: customer_id, order_id: order_id,
                 total_price: total_price, last_4_digits: last_4_digits, card_type: card_type}),
                 {
                     headers: {'Content-Type' : 'application/json'},

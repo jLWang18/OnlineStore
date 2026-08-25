@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import  useCart  from '../hooks/useCart.js';
 import '../styles/styles.css';
 import useCheckout from '../hooks/useCheckout.js';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { addOrderRecord } from '../logic/add_order_record.js';
 import { addOrderItem } from '../logic/add_order_item.js';
 import useCustomer from '../hooks/useCustomer.js';
@@ -19,6 +19,44 @@ export default function AddToCart() {
 
     const {customerId} = useCustomer();
 
+    // user's specified quantity
+    const [quantities, setQuantities] = useState({});
+
+    const selections = []
+
+    // for each product id
+    for (let i = 0; i < selectedItems.length; i++) {
+        const productIdVal = selectedItems[i].product_id
+        const optionsList = []
+        // 1 until stock qty
+        for (let j = 1; j <= selectedItems[i].in_stock_quantity; j++) {
+            const labelStr = String(j)
+            const valueInt = j
+            optionsList.push({label: labelStr, value: valueInt})
+        }
+        selections.push({productId: productIdVal, option: optionsList})
+
+    }
+
+    const selectProduct = (selection, prodId) => {
+        // return selection object given the product_id
+        return selection.productId === prodId
+    }
+
+    const handleQuantityChange = (productId, quantity) => {
+        // productId = the ID of the product whose dropdown changed
+        // quantity = the new value selected by the user
+        setQuantities((prev) => ({
+            // keep all the quantities that are already stored
+            ...prev,
+
+            // add/update the quantity for this specific product
+            // example: if productId = 101 and quantity = "3",
+            // this becomes: 101: 3
+            [productId]: Number(quantity),
+        }))
+    }
+
     const addOrder = async () => {
         // add customer's id, subtotal, shippingFee, and total price to the order_record table
         const orderId = await addOrderRecord(customerId, subtotal, shippingFee, totalAmount)
@@ -28,7 +66,7 @@ export default function AddToCart() {
             // add each selected product to the order_item table
             const product_id = selectedItems[i].product_id
             const unit_price = selectedItems[i].product_price
-            const quantity = selectedItems[i].in_stock_quantity
+            const quantity = quantities[selectedItems[i].product_id] || 1
         
             await addOrderItem(orderId, product_id, unit_price, quantity)
         }
@@ -42,11 +80,12 @@ export default function AddToCart() {
     useEffect(() => {
         // calculate subtotal (without shipping cost) and totalAmount (with shipping cost) 
         const itemsTotalPrice = (selectedItems) => {
+            
             // loop thrrough selectedItems array and calculate total prices
             let subtotal = 0;
             for (let i = 0; i < selectedItems.length; i++) {
                 // subtotal amount of an item = price * quantity
-                subtotal += selectedItems[i].product_price * selectedItems[i].in_stock_quantity;
+                subtotal += selectedItems[i].product_price * (quantities[selectedItems[i].product_id] || 1);
 
             }
              // total price of an item = subtotal + shipping cost
@@ -59,7 +98,7 @@ export default function AddToCart() {
 
         itemsTotalPrice(selectedItems);
 
-    }, [selectedItems, setSubtotal, setShippingFee, setTotalAmount])
+    }, [selectedItems, setSubtotal, setShippingFee, setTotalAmount, quantities])
       
 
     return (
@@ -73,6 +112,7 @@ export default function AddToCart() {
                 <th>Product Category</th>
                 <th>Product Name</th>
                 <th>Price</th>
+                <th>Stock</th>
                 <th>Quantity</th>
             </tr>
             </thead>
@@ -85,6 +125,20 @@ export default function AddToCart() {
                             <td>{selectedItem.product_name}</td>
                             <td>{selectedItem.product_price}</td>
                             <td>{selectedItem.in_stock_quantity}</td>
+                            <td>
+                                <select 
+                                className="qty"
+                                value={quantities[selectedItem.product_id] || 1}
+                                onChange={(e) => handleQuantityChange(
+                                    selectedItem.product_id,
+                                    e.target.value
+                                )}>
+                                    {selections.find(selection => 
+                                    selectProduct(selection, selectedItem.product_id)).option.map(option => {
+                                        return (<option key={option.value}>{option.label}</option>)                          
+                                    })}
+                                </select>
+                            </td>
                         </tr>
                     )
                 })}
