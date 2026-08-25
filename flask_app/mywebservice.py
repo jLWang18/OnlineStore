@@ -296,13 +296,13 @@ class MyWebService:
       else:
           return False
     
-  def is_product_exist(self, product_id, unit_price, quantity, conn):
+  def is_product_exist(self, product_id, conn):
       # create cursor object
       cursor = conn.cursor()
         
       # get product id from the database
-      sql_get_product_id_query = "SELECT pk_product_id FROM product WHERE pk_product_id = ? AND product_price = ? AND in_stock_quantity = ?"
-      cursor.execute(sql_get_product_id_query, (product_id,unit_price, quantity))
+      sql_get_product_id_query = "SELECT pk_product_id FROM product WHERE pk_product_id = ?"
+      cursor.execute(sql_get_product_id_query, (product_id))
         
       # fetch the row tuple
       product_id_result = cursor.fetchone()
@@ -499,15 +499,55 @@ class MyWebService:
                 
               error_message = "There was an issue adding customer's id: " + str(e)
               return jsonify({'error': error_message}), 500     
-    
+  
+  def quantity_check(self, product_id, quantity, conn):
+      # create cursor object
+      cursor = conn.cursor()
+      
+      # get in_stock_quantity from product table  given the product_id
+      sql_get_in_stock_quantity = "SELECT in_stock_quantity FROM product WHERE pk_product_id = ?"
+      cursor.execute(sql_get_in_stock_quantity, (product_id,))
+      
+      # fetch the row tuple
+      in_stock_quantity_result = cursor.fetchone()
+      
+      # if in_stock_quantity exist
+      if isinstance(in_stock_quantity_result[0], int):
+          in_stock_quantity = in_stock_quantity_result[0]
+          
+          # if the requested quantity is within the stock quantity
+          if quantity <= in_stock_quantity:
+            # subtract in_stock_quantity from quantity
+            in_stock_quantity = in_stock_quantity - quantity
+              
+            try:
+                # upadate the in_stock_quantity in the product table
+                sql_update_in_stock_quantity = "UPDATE product SET in_stock_quantity = ? WHERE pk_product_id = ?"
+                cursor.execute(sql_update_in_stock_quantity, (in_stock_quantity, product_id,))
+                return True
+            except Exception as e:
+                error_message = "There was an issue adding an order item: " + str(e)
+                return jsonify({'error': error_message}), 500 
+          else:
+              # error: requested quantity is greater than in stock quantity  
+              return False 
+        
   def add_customer_order_item(self, order_id, product_id, unit_price, quantity):
       # open and close database connection
       with pyodbc.connect(self.conn_str) as conn:
+          
           is_order_id_exist = self.is_order_id_exist(order_id, conn)
-          is_product_exist = self.is_product_exist(product_id, unit_price, quantity, conn)
+          
+          is_product_exist = self.is_product_exist(product_id, conn)
+          
             
           if (is_order_id_exist == False or is_product_exist == False):
             return jsonify({'error': 'Either order\'s id does not exist or product does not exist'}), 404
+        
+          is_in_stock = self.quantity_check(product_id, quantity, conn)
+          
+          if is_in_stock == False:
+              return jsonify({'error': 'The requested quantity is greater than the in stock quantity'}), 404
             
           # default params
           created_date = datetime.now()
@@ -515,6 +555,8 @@ class MyWebService:
             
           # create cursor object
           cursor = conn.cursor()
+          
+         
             
           try: 
               sql_order_insert_query = "INSERT INTO order_item VALUES (?, ?, ?, ?, ?, ?)"
