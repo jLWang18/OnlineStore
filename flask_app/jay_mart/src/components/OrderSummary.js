@@ -75,7 +75,7 @@ export default function OrderSummary() {
                             <td>{item.product_category}</td>
                             <td>{item.product_name}</td>
                             <td>{item.product_price}</td>
-                            <td>{item.in_stock_quantity}</td>
+                            <td>{item.product_quantity}</td>
                         </tr>
                     ))}
                 </tbody>

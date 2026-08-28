@@ -48,7 +48,7 @@ cors = CORS(app, resources={
     r"/api/addOrderRecord": {
         "origins": ["http://localhost:3000"]
     },
-    r"/api/addOrderItem": {
+    r"/api/addAllOrderItems": {
         "origins": ["http://localhost:3000"]
     },
      r"/api/addPayment": {
@@ -251,19 +251,17 @@ def addOrder_ui():
     return response
 
 # define Flask API route for React UI to add customer's order item
-@app.route("/api/addOrderItem", methods=['POST'])
-def addOrderItem_ui():
+@app.route("/api/addAllOrderItems", methods=['POST'])
+def addAllOrderItems_ui():
     # get input from input parameter
     data = request.get_json()
     order_id = data["order_id"]
-    product_id = data["product_id"]
-    unit_price = data["unit_price"]
-    quantity = data["quantity"]
+    items = data["items"]
     
     # instatiate web service
     webservice = mywebservice.MyWebService()
     
-    message = webservice.add_customer_order_item(order_id, product_id, unit_price, quantity)
+    message = webservice.add_all_customer_order_items_ui(order_id, items)
     return message
     
 # define Flask API routes for React UI to add customer's payment info
@@ -604,18 +602,16 @@ def addOrder():
     return message
 
 # define Flask API routes for SwaggerUI to add customer's order item
-@app.route("/api/customer-info/addOrderItem", methods=['POST'])
-def addOrderItem():
+@app.route("/api/customer-info/addAllOrderItems", methods=['POST'])
+def addAllOrderItems():
     # get input from query parameteter
     order_id = request.args.get("order_id")
-    product_id = request.args.get("product_id")
-    unit_price = request.args.get("unit_price")
-    quantity = request.args.get("quantity")
+    items = request.get_json() # get array of objects from the user. In Python, this becomes a list of dictionaries
     
     # instatiate swagger service
     swaggerservice = myswaggerservice.MySwaggerService()
     
-    message = swaggerservice.add_customer_order_item(order_id, product_id, unit_price, quantity)
+    message = swaggerservice.add_all_customer_order_items(order_id, items)
     return message
 
 # generate random test token

@@ -4,7 +4,7 @@ import '../styles/styles.css';
 import useCheckout from '../hooks/useCheckout.js';
 import { useEffect, useState } from 'react';
 import { addOrderRecord } from '../logic/add_order_record.js';
-import { addOrderItem } from '../logic/add_order_item.js';
+import { addAllOrderItems } from '../logic/add_all_order_items.js';
 import useCustomer from '../hooks/useCustomer.js';
 
 const SHIPPING_COST = 4.99
@@ -58,18 +58,23 @@ export default function AddToCart() {
     }
 
     const addOrder = async () => {
+        
         // add customer's id, subtotal, shippingFee, and total price to the order_record table
         const orderId = await addOrderRecord(customerId, subtotal, shippingFee, totalAmount)
         
-        // loop over selectedItem
-        for (let i = 0; i < selectedItems.length; i++) {
-            // add each selected product to the order_item table
-            const product_id = selectedItems[i].product_id
-            const unit_price = selectedItems[i].product_price
-            const quantity = quantities[selectedItems[i].product_id] || 1
+
+        // store selected orders to items array of objects
+        const items = selectedItems.map(order => {
+            // loop each order in the selection and parse it as object
+            return {"product_id": order.product_id, 
+                   "quantity": quantities[order.product_id] || 1, 
+                   "unit_price": order.product_price
+                } 
+        })
         
-            await addOrderItem(orderId, product_id, unit_price, quantity)
-        }
+        // add all orders to order item table
+        await addAllOrderItems(orderId, items)
+        
 
         // navigate to payment page
         navigate(`/payment/${orderId}`)
@@ -88,8 +93,10 @@ export default function AddToCart() {
                 subtotal += selectedItems[i].product_price * (quantities[selectedItems[i].product_id] || 1);
 
             }
+            // round up to two decimal places
+            subtotal = Number(subtotal.toFixed(2));
              // total price of an item = subtotal + shipping cost
-            let totalAmount = subtotal + SHIPPING_COST;
+            const totalAmount = Number((subtotal + SHIPPING_COST).toFixed(2));
 
             setSubtotal(subtotal)
             setShippingFee(SHIPPING_COST)

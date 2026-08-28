@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Online Store API",
-    "description": "the sale of Christian music",
+    "description": "the sale of Foods",
     "version": "1.0.0"
   },
   "paths": {
@@ -216,7 +216,7 @@
       }
     },
 
-    "/api/customer-info/addOrderItem": {
+    "/api/customer-info/addAllOrderItems": {
       "post":{
         "description":"Add customer order items",
         "operationId":"createOrderItems",
@@ -229,43 +229,44 @@
             "schema":{
               "type":"integer"
             }
-          },
-          {
-            "name":"product_id",
-            "in":"query",
-            "description": "product's id",
-            "required": true,
-            "schema":{
-              "type":"integer"
-            }
-          },
-          {
-            "name":"unit_price",
-            "in":"query",
-            "description": "product's unit price",
-            "required": true,
-            "schema":{
-              "type":"number",
-              "format":"double"
-            }
-          },
-          {
-            "name":"quantity",
-            "in":"query",
-            "description": "product's quantity",
-            "required": true,
-            "schema":{
-              "type":"integer"
-            }
           }
         ],
+
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "properties": {
+                  "product_id": {
+                    "type":"integer"
+                  },
+                  "quantity": {
+                    "type": "integer"
+                  },
+                  "unit_price": {
+                    "type": "number",
+                    "format": "double"
+                  }
+                },
+                "required": [
+                  "product_id",
+                  "quantity",
+                  "unit_price"
+                ]
+              }
+            }
+          }
+        },
+
         "responses": {
           "201": {
             "description": "Customer's order items added sucessfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/orderItem"
+                  "$ref": "#/components/schemas/orderItems"
                 }
               }
             }
@@ -534,21 +535,26 @@
           }
         }
       },
-      "orderItem": {
+      "orderItems": {
         "type": "object",
         "properties": {
           "order_id": {
             "type":"integer"
           },
-          "product_id": {
-            "type":"integer"
-          },
-          "unit_price": {
-            "type":"number",
-            "format": "double"
-          },
-          "quantity": {
-            "type":"integer"
+          "items": {
+            "type":"object",
+            "properties": {
+              "product_id": {
+                "type":"integer"
+              },
+              "quantity": {
+                "type":"integer"
+              },
+              "unit_price": {
+                "type": "number",
+                "format":"double"
+              }
+            }
           } 
         }
       },
