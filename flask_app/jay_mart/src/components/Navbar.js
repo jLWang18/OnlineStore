@@ -28,7 +28,7 @@ export default function Navbar() {
             }
         };
         fetchData();
-    }, [isLoggedIn]);
+    }, [isLoggedIn, setCustomerId]);
 
 
     return (

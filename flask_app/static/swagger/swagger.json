@@ -151,130 +151,6 @@
       }
     },
 
-
-    "/api/customer-info/addOrderRecord": {
-      "post": {
-        "description": "Add customer order",
-        "operationId": "createOrder",
-        "parameters":[
-          {
-            "name": "customer_id",
-            "in":"query",
-            "description": "customer's id",
-            "required": true,
-            "schema":{
-              "type":"integer"
-            }
-          },
-
-          {
-            "name": "subtotal",
-            "in":"query",
-            "description": "Total price of all items in the order (excluding shipping cost)",
-            "required": true,
-            "schema":{
-              "type":"number",
-              "format":"double"
-            }
-          },
-
-          {
-            "name": "shipping_fee",
-            "in":"query",
-            "description": "Shipping fee applied to the order",
-            "required": true,
-            "schema":{
-              "type":"number",
-              "format":"double"
-            }
-          },
-
-          {
-            "name": "total_amount",
-            "in":"query",
-            "description": "Final total price of the order (including shipping cost)",
-            "required": true,
-            "schema":{
-              "type":"number",
-              "format":"double"
-            }
-          }
-
-        ],
-        "responses": {
-          "201": {
-            "description": "Customer's order added successfully",
-            "content":{
-              "application/json": {
-                "schema":{
-                  "$ref":"#/components/schemas/orderRecord"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-
-    "/api/customer-info/addAllOrderItems": {
-      "post":{
-        "description":"Add customer order items",
-        "operationId":"createOrderItems",
-        "parameters":[
-          {
-            "name":"order_id",
-            "in":"query",
-            "description": "order's id",
-            "required": true,
-            "schema":{
-              "type":"integer"
-            }
-          }
-        ],
-
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "array",
-                "properties": {
-                  "product_id": {
-                    "type":"integer"
-                  },
-                  "quantity": {
-                    "type": "integer"
-                  },
-                  "unit_price": {
-                    "type": "number",
-                    "format": "double"
-                  }
-                },
-                "required": [
-                  "product_id",
-                  "quantity",
-                  "unit_price"
-                ]
-              }
-            }
-          }
-        },
-
-        "responses": {
-          "201": {
-            "description": "Customer's order items added sucessfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/orderItems"
-                }
-              }
-            }
-          }
-        }
-
-      }
-    },
     "/api/customer-info/getProfile": {
       "get":{
         "parameters":[
@@ -488,6 +364,63 @@
           }
         }
       }
+    },
+    "/api/customer-info/createOrder": {
+      "post": {
+        "description": "Add the order record and all order items to the database",
+        "operationId": "createOrderItems",
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "query",
+            "description": "customer's id",
+            "required": true,
+            "schema":{
+              "type":"integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "properties": {
+                  "product_id": {
+                    "type":"integer"
+                  },
+                  "quantity": {
+                    "type": "integer"
+                  },
+                  "unit_price": {
+                    "type": "number",
+                    "format": "double"
+                  }
+                },
+                "required": [
+                  "product_id",
+                  "quantity",
+                  "unit_price"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Customer's order and order items added sucessfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/customerProduct"
+                }
+              }
+            }
+          }
+        }
+
+      }
     }
   },
   "components": {
@@ -515,48 +448,31 @@
           }
         }
       },
-      "orderRecord": {
+
+      "customerProduct": {
         "type":"object",
-        "properties": {
-          "customer_id": {
+        "properties":{
+          "customer_id":{
             "type":"integer"
           },
-          "subtotal": {
-            "type":"number",
-            "format":"double"
-          },
-          "shipping_fee": {
-            "type":"number",
-            "format":"double"
-          },
-          "total_amount": {
-            "type":"number",
-            "format":"double"
-          }
-        }
-      },
-      "orderItems": {
-        "type": "object",
-        "properties": {
-          "order_id": {
-            "type":"integer"
-          },
-          "items": {
+          "products": {
             "type":"object",
             "properties": {
-              "product_id": {
-                "type":"integer"
-              },
-              "quantity": {
+               "product_id": {
                 "type":"integer"
               },
               "unit_price": {
                 "type": "number",
                 "format":"double"
+              },
+              "quantity": {
+                "type":"integer"
               }
+
             }
-          } 
+          }
         }
+
       },
       "payment": {
         "type":"object",

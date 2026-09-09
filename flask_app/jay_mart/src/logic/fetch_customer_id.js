@@ -18,10 +18,10 @@ export const fetchCustomerId = async() => {
       });
     
     // get the customer profile
-    const customer = response.data
+    const customer = response.data.data.customer_id
 
     // get and set the customer id
-    return customer["customer_id"]
+    return customer
 
   } catch(err) {
       throw err

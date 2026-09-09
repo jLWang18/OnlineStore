@@ -110,7 +110,7 @@ const Login = () => {
           }
         );
         
-        const accessToken = response.data;
+        const accessToken = response.data.data;
         return accessToken
 
       } catch(err) {

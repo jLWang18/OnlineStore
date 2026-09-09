@@ -23,7 +23,7 @@ export const fetchCustomerProfile = async() => {
       });
     
     // get the customer profile
-    const customer = response.data
+    const customer = response.data.data
 
     return customer
 

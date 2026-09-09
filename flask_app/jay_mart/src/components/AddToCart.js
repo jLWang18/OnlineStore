@@ -3,11 +3,8 @@ import  useCart  from '../hooks/useCart.js';
 import '../styles/styles.css';
 import useCheckout from '../hooks/useCheckout.js';
 import { useEffect, useState } from 'react';
-import { addOrderRecord } from '../logic/add_order_record.js';
-import { addAllOrderItems } from '../logic/add_all_order_items.js';
+import { calculateOrder, createOrder } from '../logic/process_order.js';
 import useCustomer from '../hooks/useCustomer.js';
-
-const SHIPPING_COST = 4.99
 
 export default function AddToCart() {
     const navigate = useNavigate();
@@ -57,55 +54,63 @@ export default function AddToCart() {
         }))
     }
 
-    const addOrder = async () => {
-        
-        // add customer's id, subtotal, shippingFee, and total price to the order_record table
-        const orderId = await addOrderRecord(customerId, subtotal, shippingFee, totalAmount)
-        
+    
 
+    const addOrder = async () => {
+        if (!customerId) {
+            alert("Please log in before placing an order.")
+            return
+        }
         // store selected orders to items array of objects
-        const items = selectedItems.map(order => {
+        const orders = selectedItems.map(order => {
             // loop each order in the selection and parse it as object
             return {"product_id": order.product_id, 
-                   "quantity": quantities[order.product_id] || 1, 
-                   "unit_price": order.product_price
-                } 
-        })
-        
-        // add all orders to order item table
-        await addAllOrderItems(orderId, items)
-        
+                "unit_price": order.product_price,
+                "quantity": quantities[order.product_id] || 1, 
+            
+        }})
+        try {
+            // create customer order
+           const data = await createOrder(customerId, orders)
 
-        // navigate to payment page
-        navigate(`/payment/${orderId}`)
-
+            // if successful, navigate to payment page
+            navigate(`/payment/${data['order_id']}`)
+        } catch (err) {
+            if (err.response?.status === 400) {
+                alert("one of the operations failed");
+            } else if (err.response?.status === 500) {
+                alert("The order could not be completed")
+            }
+        }
         
     }
 
     useEffect(() => {
-        // calculate subtotal (without shipping cost) and totalAmount (with shipping cost) 
-        const itemsTotalPrice = (selectedItems) => {
+        const calculateCustomerOrder = async (selectedItems, quantities) => {
+            // store selected orders to items array of objects
+            const orders = selectedItems.map(order => {
+                // loop each order in the selection and parse it as object
+                return {"product_id": order.product_id, 
+                    "unit_price": order.product_price,
+                    "quantity": quantities[order.product_id] || 1, 
+                
+            }})
             
-            // loop thrrough selectedItems array and calculate total prices
-            let subtotal = 0;
-            for (let i = 0; i < selectedItems.length; i++) {
-                // subtotal amount of an item = price * quantity
-                subtotal += selectedItems[i].product_price * (quantities[selectedItems[i].product_id] || 1);
+            try {
+                const receipt = await calculateOrder(orders)
 
+                setSubtotal(receipt.data.subtotal)
+                setShippingFee(receipt.data.shipping_fee)
+                setTotalAmount(receipt.data.total_amount.toFixed(2))
+            } catch (err) {
+                alert(err)
             }
-            // round up to two decimal places
-            subtotal = Number(subtotal.toFixed(2));
-             // total price of an item = subtotal + shipping cost
-            const totalAmount = Number((subtotal + SHIPPING_COST).toFixed(2));
 
-            setSubtotal(subtotal)
-            setShippingFee(SHIPPING_COST)
-            setTotalAmount(totalAmount)
         }
+        // calculate current seleccted order items
+        calculateCustomerOrder(selectedItems, quantities)
 
-        itemsTotalPrice(selectedItems);
-
-    }, [selectedItems, setSubtotal, setShippingFee, setTotalAmount, quantities])
+    }, [selectedItems, quantities, setSubtotal, setShippingFee, setTotalAmount])
       
 
     return (
@@ -154,10 +159,16 @@ export default function AddToCart() {
         
         <label><h4>items ({selectedItems.length}): ${subtotal}</h4></label>
         <label><h4>shipping: ${shippingFee}</h4></label>
-        <label><h4>subtotal: ${totalAmount}</h4></label>
+        <label><h4>total: ${totalAmount}</h4></label>
 
         <div className="options">
-            <button className="button" onClick={() => addOrder()}>Proceed to Payment</button>
+            <button
+                className="button"
+                onClick={addOrder}
+                disabled={!customerId}
+            >
+                Proceed to Payment
+            </button>
             <button className="button" onClick={() => navigate("/")}>Cancel</button>
         </div>
         </div>

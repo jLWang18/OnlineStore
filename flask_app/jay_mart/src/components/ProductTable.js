@@ -3,12 +3,15 @@ import { getProductList } from '../logic/display_products';
 import { useNavigate } from 'react-router-dom';
 import  useCart  from '../hooks/useCart'
 import '../styles/styles.css';
+import useAuth from '../hooks/useAuth';
 
 const ProductTable = () => {
   const navigate = useNavigate();
 
   const {selectedItems, onItemSelect} = useCart();
   const [products, setProducts] = useState([]);
+
+  const {isLoggedIn} = useAuth();
 
 
 
@@ -35,6 +38,10 @@ const ProductTable = () => {
 
 
     const handleNavigate = () => {
+      // if not logged in, show alert
+      if (!isLoggedIn) {
+        alert("Please login or sign up before ordering products.")
+      }
       let count = selectedItems.length 
 
       if (count > 0) {
@@ -64,17 +71,31 @@ const ProductTable = () => {
               const isChecked = selectedItems.some((item) => item.product_id === product.product_id)
               return (
                 <tr key={product.product_id}>
-                  <td>
+                  {product.in_stock_quantity === 0 ? (
+                    <td>
                     <input 
                       type="checkbox"
                       checked= {isChecked}
-                      onChange={() => onItemSelect(product)} />
-                  </td>
+                      onChange={() => onItemSelect(product)}
+                      disabled
+                      title="This product is currently out of stock."/>
+                  </td>) : (
+                    <td>
+                    <input 
+                      type="checkbox"
+                      checked= {isChecked}
+                      onChange={() => onItemSelect(product)}/>
+                    </td>
+                  )}
                   <td>{product.product_id}</td>
                   <td>{product.product_category}</td>
                   <td>{product.product_name}</td>
                   <td>{product.product_price}</td>
-                  <td>{product.in_stock_quantity}</td>
+                  {product.in_stock_quantity === 0 ? (
+                    <td>Out of Stock</td>
+                  ): (
+                    <td>{product.in_stock_quantity}</td>
+                  )}
                 </tr>
               )
             })}
@@ -83,8 +104,8 @@ const ProductTable = () => {
         
         {/* Navigte to addToCart page upon clicking*/}
        <div className="options">
-            <button className="button" type="button" onClick={() => handleNavigate()}>Add to Cart</button>
-            <button className="button" type="reset" onClick={unSelectItems}> Unselect all</button>
+        <button className="button" type="button" onClick={() => handleNavigate()}>Add to Cart</button>
+        <button className="button" type="reset" onClick={unSelectItems}> Unselect all</button>
        </div>
        </>
      )

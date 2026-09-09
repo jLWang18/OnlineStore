@@ -1,5 +1,4 @@
 import axios from "../api/axios"
-import AxiosError from "../utils/AxiosError"
 
 const PAYMENT_URL = "http://localhost:5000/api/addPayment"
 
