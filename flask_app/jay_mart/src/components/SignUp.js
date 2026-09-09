@@ -45,7 +45,6 @@ const SignUp = () => {
       // add new user to the database
       const accessToken = await addCustomer(fname, lname, email, pwd, phone)
       if (!accessToken) throw new Error("signup failed")
-      
       // store token
       login(accessToken)
 
@@ -138,7 +137,7 @@ const SignUp = () => {
             withCredentials: true
 
          })
-        const accessToken = response.data
+        const accessToken = response.data.data
         return accessToken
 
     } catch(err) {

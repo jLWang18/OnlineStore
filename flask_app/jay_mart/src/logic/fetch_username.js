@@ -11,7 +11,7 @@ export const fetchUserName = async(setUsername) => {
     }
 
     try {
-
+        // console.log(token)
         const response = await axios.get(WHOAMI_URL,
             {
                 headers: {

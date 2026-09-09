@@ -7,7 +7,6 @@ import uuid
 import mywebservice
 import myswaggerservice
 import re, os
-import json
 
 
 
@@ -18,7 +17,7 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SECURE'] = True # set to True for HTTPS only
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(seconds=10)
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(weeks=2)
 app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(hours=1)
 
 
@@ -40,15 +39,9 @@ cors = CORS(app, resources={
         "origins": ["http://localhost:3000"]
     },
     r"/api/whoami": {
-        "origins": ["http://localhost:3000"],
+        "origins": ["http://localhost:3000"]
     },
     r"/api/getProfile": {
-        "origins": ["http://localhost:3000"]
-    },
-    r"/api/addOrderRecord": {
-        "origins": ["http://localhost:3000"]
-    },
-    r"/api/addAllOrderItems": {
         "origins": ["http://localhost:3000"]
     },
      r"/api/addPayment": {
@@ -67,7 +60,13 @@ cors = CORS(app, resources={
         "origins": ["http://localhost:3000"]
      },
      r"/api/getAllOrderItems/*": {
-         "origins": ["http://localhost:3000"]
+        "origins": ["http://localhost:3000"]
+     },
+     r"/api/createOrder": {
+        "origins": ["http://localhost:3000"]
+     },
+     r"/api/calculateOrder": {
+        "origins": ["http://localhost:3000"]
      }
     
 }, supports_credentials= True)
@@ -213,25 +212,21 @@ def get_profile():
     if not data:
         return jsonify({'error': "Authorization token is missing"}), 401
     
-    try:
-        # extract token part if prefixed with "Bearer"
-        if data.startswith("Bearer "):
-            data = data.split(" ")[1]
-            parsed_data = json.loads(data)
-            access_token = parsed_data["accessToken"] 
-        else:
-            return jsonify({"error": "Invalid Authorization format"}), 401
-        
-        # instatiate web service
-        webservice = mywebservice.MyWebService()
-        
-        # get customer
-        response = webservice.get_customer(access_token)
+    # extract the complete token after the Bearer scheme
+    scheme, access_token = data.split(None, 1)
+    if scheme.lower() != "bearer" or not access_token:
+        return jsonify({"error": "Invalid Authorization format"}), 401
     
-        # return customer data
-        return response
-    except Exception as e:
-        return jsonify({"error": "Unexpected server error: " + str(e)}), 500
+    # instatiate web service
+    webservice = mywebservice.MyWebService()
+    
+    access_token = access_token.strip('"')
+    
+    # get customer
+    response = webservice.get_customer(access_token)
+
+    # return customer if successful
+    return response
 
 # define Flask API route for React UI to add customer's order
 @app.route('/api/addOrderRecord', methods=['POST'])
@@ -250,19 +245,33 @@ def addOrder_ui():
     response = webservice.add_customer_order(customer_id, subtotal, shipping_fee, total_amount)
     return response
 
-# define Flask API route for React UI to add customer's order item
-@app.route("/api/addAllOrderItems", methods=['POST'])
-def addAllOrderItems_ui():
+# define Flask API routes for React UI to add the order record and all order items to the database
+@app.route('/api/createOrder', methods={'POST'})
+def createOrder_ui():
     # get input from input parameter
     data = request.get_json()
-    order_id = data["order_id"]
-    items = data["items"]
+    customer_id = data['customer_id']
+    orders = data['orders']
     
-    # instatiate web service
+    # instantiate web service
     webservice = mywebservice.MyWebService()
     
-    message = webservice.add_all_customer_order_items_ui(order_id, items)
-    return message
+    response = webservice.create_order_ui(customer_id, orders)
+    return response
+
+@app.route('/api/calculateOrder', methods=['POST'])
+def calculate_order():
+    # get input from input parameter
+    data = request.get_json()
+    orders = data['orders']
+    
+    # instantiate web service
+    webservice = mywebservice.MyWebService()
+    # calculate orders 
+    receipt = webservice.calculate_order_total(orders)
+    return receipt
+    
+    
     
 # define Flask API routes for React UI to add customer's payment info
 @app.route("/api/addPayment", methods=['POST'])
@@ -349,9 +358,13 @@ def login():
             return jsonify({"error: there is an issue in getting shopper id"}, 500)
         
         # store access token in the database
-        webservice.add_token(shopper_id, access_token)
+        result, status = webservice.add_token(shopper_id, access_token)
         
-        return jsonify({"accessToken": access_token}), 200
+        if status != 200:
+            return jsonify(result), status
+        
+        return jsonify({'message': result['message'], 'data': result['data']}), status
+        
     else:
         return jsonify({'error': "Unauthorized"}), 401
 
@@ -416,9 +429,9 @@ def signup():
                 return jsonify({"error: there is an issue in getting shopper id"}, 500)
             
             # store access token in the database
-            webservice.add_token(shopper_id, access_token)
+            response, status = webservice.add_token(shopper_id, access_token)
             
-            return jsonify({"accessToken": access_token}), 200
+            return jsonify(response), status
         else:
             return jsonify({"error": "cannot add customer to the databse"}), 400
 
@@ -454,22 +467,25 @@ def getAllOrderItems_ui(order_id):
    
 @app.route('/api/whoami', methods=["GET"])
 def whoami():
-    # get the access token
+   # get the access token
     data = request.headers.get("Authorization")
-    
     
     if not data:
         return jsonify({'error': "Authorization token is missing"}), 401
     
-    # extract token part if prefixed with "Bearer"
-    if data.startswith("Bearer "):
-        data = data.split(" ")[1]
-        parsed_data = json.loads(data)
-        access_token = parsed_data["accessToken"] 
+    # extract the complete token after the Bearer scheme
+    scheme, access_token = data.split(None, 1)
+    if scheme.lower() != "bearer" or not access_token:
+        return jsonify({"error": "Invalid Authorization format"}), 401
+    
+    # instatiate web service
+    webservice = mywebservice.MyWebService()
+    
+    access_token = access_token.strip('"')
      
     # instatiate web service
     webservice = mywebservice.MyWebService()
-     
+    
     # get customer's first name
     response = webservice.get_customer_name(access_token)
     
@@ -586,34 +602,6 @@ def authenticate():
         message = swaggerservice.authenticate_customer(email, password)
         return message
 
-# define Flask API routes for SwaggerUI to add customer's order
-@app.route("/api/customer-info/addOrderRecord", methods=['POST'])
-def addOrder():
-    # get input parameters
-    customer_id = request.args.get("customer_id")
-    subtotal = request.args.get("subtotal")
-    shipping_fee = request.args.get("shipping_fee")
-    total_amount = request.args.get("total_amount")
-    
-    # instatiate swagger service
-    swaggerservice = myswaggerservice.MySwaggerService()
-    
-    message = swaggerservice.add_customer_order(customer_id, subtotal, shipping_fee, total_amount)
-    return message
-
-# define Flask API routes for SwaggerUI to add customer's order item
-@app.route("/api/customer-info/addAllOrderItems", methods=['POST'])
-def addAllOrderItems():
-    # get input from query parameteter
-    order_id = request.args.get("order_id")
-    items = request.get_json() # get array of objects from the user. In Python, this becomes a list of dictionaries
-    
-    # instatiate swagger service
-    swaggerservice = myswaggerservice.MySwaggerService()
-    
-    message = swaggerservice.add_all_customer_order_items(order_id, items)
-    return message
-
 # generate random test token
 def generate_test_token():
     # generate token
@@ -691,6 +679,18 @@ def getAllOrderItems(order_id):
     response = swaggerservice.get_all_order_items(order_id)
     return response 
 
-# start the Flask application if this script is executed directly
+# define Flask API routes for SwaggerUI to add the order record and all order items to the database
+@app.route('/api/customer-info/createOrder', methods={'POST'})
+def createOrder():
+    customer_id = request.args.get("customer_id")
+    # get array of objects: selected orders
+    orders = request.get_json()
+    
+    # instantiate swagger service
+    swaggerservice = myswaggerservice.MySwaggerService()
+    
+    response = swaggerservice.create_order(customer_id, orders)
+    return response
+
 if __name__== "__main__":
     app.run(debug=True)

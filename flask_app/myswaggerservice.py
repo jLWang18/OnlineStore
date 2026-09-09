@@ -3,10 +3,12 @@ from datetime import datetime
 import pyodbc
 import bcrypt
 import os
-
 class MySwaggerService:
     # accessing environment variables for SQL DB connection
     conn_str = os.environ.get('DB_CONNECTION')
+    
+    # shipping fee of an order
+    SHIPPING_COST = 4.99
 
 
     # check if email exist in database
@@ -244,119 +246,25 @@ class MySwaggerService:
                 error_message = "There was an issue adding customer's info: " + str(e)
                 return jsonify({'error': error_message}), 500
 
-    def add_customer_order(self, customer_id, subtotal, shipping_fee, total_amount):
-        # open and close database connection
-        with pyodbc.connect(self.conn_str) as conn:
-
-            # check if customer's id exist in the database
-            is_exist = self.is_customer_id_exist(customer_id, conn)
-
-            if (is_exist == False):
-                return jsonify({'error': 'Customer\'s id does not exist'}), 404
-
-            # default params
-            order_date = datetime.now()
-            payment_status = None
-            created_date = datetime.now()
-            modified_date = None
-
-            # Order statuses: PENDING, PAID
-            order_status = "PENDING"
-
-            # create cursor object
-            cursor = conn.cursor()
-
-            try:
-                sql_customer_id_insert_query = "INSERT INTO order_record VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-                cursor.execute(sql_customer_id_insert_query, (customer_id, order_date, subtotal, shipping_fee, total_amount, payment_status, created_date, modified_date, order_status))
-                conn.commit()
-
-                return jsonify({'message': 'Order record is added successfully'}), 200
-
-            except Exception as e:
-
-                error_message = "There was an issue adding customer's id: " + str(e)
-                return jsonify({'error': error_message}), 500
-
-    def get_in_stock_quantity(self, product_id, conn):
+    def get_order_id(self, conn):
         # create cursor object
         cursor = conn.cursor()
-
-
-        sql_get_stock_query = "SELECT in_stock_quantity FROM product WHERE pk_product_id = ?"
-        cursor.execute(sql_get_stock_query, (product_id))
-
+        
+        # get the latest order id by the latest created_date
+        sql_get_order_id = "SELECT TOP 1 pk_order_id FROM order_record ORDER BY created_date DESC"
+        cursor.execute(sql_get_order_id)
+            
         # fetch the row tuple
         result = cursor.fetchone()
-
-        # if in_stock_quantity exist, return the in_stock_quantity
-        if (result is not None and isinstance(result[0], int)):
-            return result[0]
+        
+        # get order id
+        order_id = result[0]
+        
+        # is order id an integer? 
+        if isinstance(order_id, int):
+            return str(order_id)
         else:
-            return jsonify({'error': 'in_stock_quantity does not exist'}), 500
-
-    def reduce_in_stock_quantity(self, product_id, in_stock_quantity, quantity, conn):
-        # create cursor object
-        cursor = conn.cursor()
-
-        try:
-            # subtract in_stock_quantity from quantity
-            in_stock_quantity = in_stock_quantity - quantity
-
-            # upadate the in_stock_quantity in the product table
-            sql_update_in_stock_quantity = "UPDATE product SET in_stock_quantity = ? WHERE pk_product_id = ?"
-            cursor.execute(sql_update_in_stock_quantity, (in_stock_quantity, product_id,))
-            return True
-        except Exception as e:
-            error_message = "There was an issue adding an order item: " + str(e)
-            return jsonify({'error': error_message}), 500
-
-    def add_all_customer_order_items(self, order_id, items):
-        # open and close database connection
-        with pyodbc.connect(self.conn_str) as conn:
-
-            is_order_id_exist = self.is_order_id_exist(order_id, conn)
-
-            if (is_order_id_exist == False):
-                return jsonify({'error': 'Either order\'s id does not exist or product does not exist'}), 404
-
-            # default params
-            created_date = datetime.now()
-            modified_date = None
-
-            # create cursor object
-            cursor = conn.cursor()
-
-            # loop items
-            for order in items:
-                # get in_stock quantity given product_id
-                product_id = order['product_id']
-                in_stock_quantity = self.get_in_stock_quantity(product_id, conn)
-                requested_quantity = order['quantity']
-
-                if (requested_quantity > in_stock_quantity):
-                    return jsonify({'error': 'one of the product\'s requested quantity is greater than the in_stock quantity'}), 500
-
-            # all items' requested quantity is within in_stock_quantity
-            # thus, we can add all items to order item table
-            for order in items:
-                try:
-                    sql_add_order_items = "INSERT INTO order_item VALUES (?, ?, ?, ?, ?, ?)"
-                    product_id = order['product_id']
-                    quantity = order['quantity']
-                    unit_price = order['unit_price']
-                    cursor.execute(sql_add_order_items, (order_id, product_id, quantity, unit_price, created_date, modified_date))
-                    conn.commit()
-
-                    # next, reduce in_stock_quantity
-                    self.reduce_in_stock_quantity(product_id, in_stock_quantity, quantity, conn)
-
-                except Exception as e:
-                    error_message = "There was an issue adding all order items" + str(e)
-                    return jsonify({'error': error_message}), 500
-
-            # after all orders added and its in_stock_quantity reduced, return a success message
-            return jsonify({'success': 'All order items is added successfully'}), 200
+            return jsonify({'error': 'Customer\'s id does not exist'}), 404
 
     def add_customer_payment(self, customer_id, order_id, total_price, payment_token, last_4_digits, card_type):
         # open and close database connection
@@ -550,3 +458,238 @@ class MySwaggerService:
 
             else:
                 return jsonify({'error': "order_id is not exist"}), 400
+    
+    def validate_order(self, customer_id, orders, conn):
+        # check if customer_id exist
+        if self.is_customer_id_exist(customer_id, conn) == False:
+            return False
+        
+        # check if all orders exist in the product_table
+        for order in orders:
+            product_id = order['product_id']
+            unit_price = order['unit_price']
+            in_stock_quantity = self.get_stock_quantity(product_id, conn)
+                            
+            if in_stock_quantity is None:
+                return False
+            
+            cursor = conn.cursor()
+            
+            sql_get_product_id = """
+            SELECT 
+                pk_product_id 
+            FROM product WHERE 
+                pk_product_id = ? AND product_price = ? AND in_stock_quantity = ?
+            """
+            cursor.execute(sql_get_product_id, (product_id, unit_price, in_stock_quantity))
+            
+            # fetch the row tuple
+            product_id_result = cursor.fetchone()
+            
+            # if product_id does not exist, return False
+            if (product_id_result is None):
+                return False
+        
+        # all orders exist
+        return True
+    
+    def get_stock_quantity(self, product_id, conn):
+        # create cursor object
+        cursor = conn.cursor()
+        
+        # get in_stock_quantity
+        sql_get_stock_query = "SELECT in_stock_quantity FROM product WHERE pk_product_id = ?"
+        cursor.execute(sql_get_stock_query, (product_id,))
+        
+        # fetch row tuple
+        stock_result = cursor.fetchone()
+        
+        # if stock exist, return stock
+        if (stock_result is not None and isinstance(stock_result[0], int)):
+            return stock_result[0]
+        else:
+            return None
+        
+    def validate_quantities(self, orders):
+        # loop orders
+            for order in orders:
+                # get in_stock quantity given product_id
+                requested_quantity = order['quantity']
+                
+                if requested_quantity <= 0:
+                    return False
+            
+            return True
+    
+    def reserve_stock(self, orders, conn):
+        for order in orders:
+            product_id = order['product_id']
+            requested_quantity = order['quantity']
+            
+            result, status = self.reserve_stock_quantity(product_id, requested_quantity, conn)
+            
+            if status != 200:
+                return result, status
+        return {'message': 'Stock reserved successfully'}, 200
+            
+    def reserve_stock_quantity(self, product_id, requested_quantity, conn):
+        # create cursor object
+        cursor = conn.cursor()
+
+        try:
+            # Reduce the current stock by the requested quantity, only if 
+            # current stock is less than or equal to the current stock.
+            sql_update_in_stock_quantity = """
+            UPDATE product
+            SET in_stock_quantity = in_stock_quantity - ?
+            WHERE pk_product_id = ?
+                AND ? <= in_stock_quantity
+            """
+            cursor.execute(sql_update_in_stock_quantity, (requested_quantity, product_id, requested_quantity))
+            
+            # check whether a product row was actually updated
+            if cursor.rowcount == 1:
+                    return {'message': 'stocks reduced suceessfully'}, 200
+            else:
+                return {'error': 'The requested quantity exceeds the available stock'}, 400
+        except Exception as e:
+            error_message = "There was issue in reducing stocks " + str(e)
+            return {'error': error_message}, 500
+            
+    def calculate_order_total(self, orders):
+        # get subtotal
+        subtotal = 0
+        
+        # loop orders
+        for order in orders:
+            subtotal += order['unit_price'] * order['quantity']
+        
+        # total ammount
+        total_amount = subtotal + self.SHIPPING_COST
+        
+        # return the calculations
+        receipt = {
+            'subtotal': subtotal,
+            'shipping_fee': self.SHIPPING_COST,
+            'total_amount': total_amount,
+        }
+        return receipt
+    
+    def create_order_record(self, customer_id, orders, receipt, conn):
+        # default params
+        order_date = datetime.now()
+        payment_status = None
+        created_date = datetime.now()
+        modified_date = None
+
+        # Order statuses: PENDING, PAID
+        order_status = "PENDING"
+
+        # create cursor object
+        cursor = conn.cursor()
+
+        try:
+            sql_customer_id_insert_query = "INSERT INTO order_record VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            
+            cursor.execute(sql_customer_id_insert_query, (customer_id, order_date, receipt['subtotal'], 
+            receipt['shipping_fee'], receipt['total_amount'], payment_status, 
+            created_date, modified_date, order_status))
+            
+            # return the order_id of the purchase
+            order_id = self.get_order_id(conn)
+    
+            # add order items to the order_items table and reduce stocks
+            result, status = self.create_order_items(order_id, orders, conn)
+           
+            # success in adding all order items
+            if status == 200:
+                return result, status
+            else:
+                # error in adding all order items
+                return result, 200
+
+        except Exception as e:
+            error_message = "There was an issue adding order record: " + str(e)
+            return {'error': error_message}, 500
+            
+    def create_order_items(self, order_id, orders, conn):
+            # default params
+            created_date = datetime.now()
+            modified_date = None
+
+            # create cursor object
+            cursor = conn.cursor()
+
+            # thus, we can add all orders to order item table
+            for order in orders:
+                try:
+                    sql_add_order_items = "INSERT INTO order_item VALUES (?, ?, ?, ?, ?, ?)"
+                    product_id = order['product_id']
+                    quantity = order['quantity']
+                    unit_price = order['unit_price']
+                    cursor.execute(sql_add_order_items, (order_id, product_id, quantity, unit_price, created_date, modified_date))
+
+                except Exception as e:
+                    error_message = "There was an issue creating order items" + str(e)
+                    return {'error': error_message}, 500
+    
+            # after all orders added and its in_stock_quantity reduced, return a success message
+            return {'message': 'All order items is added successfully', 'order_id': int(order_id)}, 200
+    
+   
+            
+    def create_order(self, customer_id, orders):
+        # open and close database connection
+        with pyodbc.connect(self.conn_str) as conn: 
+            try:
+                # validate customer and products
+                if not self.validate_order(customer_id, orders, conn):
+                    # undo changes to the database
+                    conn.rollback()
+                    
+                    return jsonify({'error': ('Either customer ID does not' 
+                                    'exist or one or more products are invalid')}), 400
+                
+                # validate requested quantities
+                if not self.validate_quantities(orders):
+                    conn.rollback()
+                    
+                    return jsonify({'error': ('one of the requested quantities is invalid')}), 400
+                
+                # reserve stocks
+                result, status = self.reserve_stock(orders, conn)
+                
+                if status != 200:
+                    conn.rollback()
+                    return jsonify(result), status
+                
+                receipt = self.calculate_order_total(orders)
+                
+                # create order transaction
+                result, status = self.create_order_record(customer_id, orders, receipt, conn)
+                
+                if status != 200:
+                    conn.rollback()
+                    
+                    return jsonify(result), status
+                
+                # everything succeeded
+                conn.commit()
+                
+                order_summary = {
+                    'order_id': result['order_id'],
+                    'subtotal': receipt['subtotal'],
+                    'shipping_fee': receipt['shipping_fee'],
+                    'total_amount': receipt['total_amount']
+                }
+                return jsonify({
+                    'message': result['message'],
+                    'data': order_summary
+                }), 200
+                    
+            except Exception as e:
+                conn.rollback()
+                
+                return jsonify({'error': 'The order could not be completed: ' + str(e)}), 500
+            
+          
