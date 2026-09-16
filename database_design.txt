@@ -1,94 +1,173 @@
-E-Commerce Database
----------------------------
-This database contains customer table, shipping address table, 
-invoice table, payment table, product table, and order item table
+Overview
 
-Keyword:
-PK --> Primary Key
-FK --> Foreign Key
+This database supports the core functionality of an e-commerce application, including product management, shopper accounts, authentication, order processing, and payment tracking.
 
-Customer Table
-Purpose: This table stores information about a customer
+Current Milestone Tables
 
-Fields:
-    - customer id (PK)
-    - first name
-    - last name
-    - email address unique
-    - password_hash
-    - phone number
-    - shipping adresss (FK)
-    - credit limit
-    - invoice
-    - payment
-    - created date
-    - modified date
+The current milestone includes the following tables:
 
-Shipping Address Table
-Purpose: This table stores the shipping address of a customer. 
-This table is intended to be seperate from the customer table, so that the customer can
-manage their addresses and reuse them during check out process.
+- Product
+- Shopper
+- Access Token
+- Order Record
+- Order Item
+- Payment
 
-Fields:
-    - address id (PK)
-    - line one
-    - line two
-    - city
-    - state
-    - zip
-    - created date
-    - modified date
+Future Milestone Tables
 
-Invoice Table
-Purpose: This table records details of the invoices the store issue to customers
+The following tables are planned for future milestones:
 
-Fields:
-    - invoice id (PK)
-    - customer id (FK)
-    - invoice date 
-    - due date
-    - invoice amount
-    - payment status
-    - exceed credit limit status
-    - payment amount (FK)
-    - created date
-    - modified date
+- Shipping Address
+- Invoice
 
-Payment Table
-Purpose: This table tracks customer payments
+Keywords
 
-Fields:
-    - payment id (PK)
-    - customer id (FK)
-    - order id (FK)
-    - invoice date (FK)
-    - total price
-    - payment status
-    - payment token
-    - last 4 digits
-    - card type
-    - created date
-    - modified date
+- PK -> Primary Key
+- FK -> Foreign Key
+
 
 Product Table
-Purpose: This table contains products that a customer can buy
+=============
+
+Purpose:
+Stores information about products that shoppers can purchase.
 
 Fields:
-    - product id (PK)
-    - name
-    - price
-    - in stock quantity
-    - created date
-    - modified date 
+- product id (PK)
+- product category
+- product name
+- product price
+- in stock quantity
+- created date
+- modified date
+
+
+Shopper Table
+=============
+
+Purpose:
+Stores information about shoppers who use the application.
+
+Fields:
+- shopper id (PK)
+- first name
+- last name
+- email address (unique)
+- phone number
+- password hash
+- created date
+- modified date
+
+
+Access Token Table
+==================
+
+Purpose:
+Stores authentication tokens associated with shoppers.
+
+Fields:
+- access token id (PK)
+- shopper id (FK)
+- token
+- issued at
+- expires at
+- last used at
+- is revoked
+
+
+Order Record Table
+==================
+
+Purpose:
+Stores information about who placed an order and the overall information associated with that order.
+
+Fields:
+- order id (PK)
+- shopper id (FK)
+- order date
+- subtotal
+- shipping fee
+- total amount
+- payment status
+- order status
+- created date
+- modified date
+
 
 Order Item Table
-PUrpose: This table contains information about the product that the customer buy
+================
+
+Purpose:
+Stores the individual products belonging to an order.
 
 Fields:
-    - order item id (PK)
-    - product id (FK) 
-    - quantity
-    - discount
-    - unit price --> price at the time of purchase, which can be different from the original price due to discount
-    - created date
-    - modified date
+- order item id (PK)
+- order id (FK)
+- product id (FK)
+- quantity
+- unit price
+- created date
+- modified date
+
+
+Payment Table
+=============
+
+Purpose:
+Tracks payments associated with an order.
+
+Fields:
+- payment id (PK)
+- shopper id (FK)
+- order id (FK)
+- total price
+- payment status
+- payment token
+- last 4 digits
+- card type
+- created date
+
+
+Future Milestones
+=================
+
+Shipping Address Table
+----------------------
+
+Status: Future milestone
+
+Purpose:
+Stores shipping addresses associated with a shopper.
+
+This table is intentionally separate from the Shopper table so that a shopper can manage multiple addresses and reuse an address during the checkout process.
+
+Fields:
+- address id (PK)
+- shopper id (FK)
+- line one
+- line two
+- city
+- state
+- zip
+- created date
+- modified date
+
+Invoice Table
+-------------
+
+Status: Future milestone
+
+Purpose:
+Records invoice information issued to shoppers.
+
+Fields:
+- invoice id (PK)
+- shopper id (FK)
+- invoice date
+- due date
+- invoice amount
+- payment status
+- exceeds credit limit status
+- payment amount
+- created date
+- modified date
