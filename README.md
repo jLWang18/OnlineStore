@@ -12,19 +12,32 @@ The Online Store Website is an e-commerce platform that enables customers to mak
 
 * **Shopping Cart** – Add, view, and remove products.
 
-* **Credit-Based Purchases** – Transactions processed using a virtual credit system.
+* **Product Quantity Selection** – Select the quantity of each food item to purchase.
+
+* **Order Management** – Place orders and view confirmed and past orders.
+
+* **Payment Information** – Enter transaction information when placing an order.
+
+* **Customer Profile** – View order history through the customer profile.
 
 ## Recent Updates
 #### AddToCart Feature
-* Users can add products to their cart after logging in.
+* Customer can add products to their cart after logging in or signing up.
 
-* View selected products in the cart.
+* Customers can view their selected products in the cart.
 
-* Remove all selected products.
+* Customers can remove selected products from the cart.
 
-* Demo Video 1: [Selecting Products After Login](https://www.loom.com/share/0f9bf9ef5b254d81a612c22033377425?sid=e9f83687-8240-4d68-90f1-7d15dcde1b9a)
+* Customers can select the quantity of each food item they want to purchase.
 
-* Demo Video 2: [Selecting Products After Sign Up](https://www.loom.com/share/de1f3307d9b04996af58536e3d99c7e5?sid=e952d3bd-3b26-4d74-b999-32a681edb3c2)
+* The quantity selection is limited to the available stock.
+
+* Products with zero stock are displayed as Out of Stock.
+
+#### Demo Videos
+* Demo Video 1: [Returning Customer: Shopping and Selecting Quantity](https://www.loom.com/share/38222d79072a456a8ec8780c6b7b124f)
+
+* Demo Video 2: [New Customer: Sign Up, Shopping, and Selecting Quantity](https://www.loom.com/share/9891dec5ecdc4468bfd3dabf3a777e40)
 
 ## Prerequisites
 Before running the website, do the following:
